@@ -1,5 +1,0 @@
-libs for the display 
-
-https://github.com/caemor/epd-waveshare/tree/main?tab=readme-ov-file
-
-https://github.com/ivmarkov/rust-esp32-std-demo
