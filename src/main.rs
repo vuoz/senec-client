@@ -12,13 +12,43 @@ use embedded_graphics::Drawable;
 
 use anyhow::Result;
 use esp_idf_hal::peripherals::Peripherals;
+use esp_idf_svc::eventloop::EspSystemEventLoop;
+use esp_idf_svc::nvs:: EspDefaultNvsPartition;
+use esp_idf_svc::wifi::{  EspWifi, Configuration, ClientConfiguration};
+use esp_idf_svc::wifi::BlockingWifi;
 use esp_idf_hal::units::Hertz;
 fn main() -> Result<()> {
     esp_idf_svc::sys::link_patches();
 
-
     esp_idf_svc::log::EspLogger::initialize_default();
+
+
     let peripherals = Peripherals::take()?;
+    let esp_sys_loop = EspSystemEventLoop::take()?;
+    let nvs = EspDefaultNvsPartition::take()?;
+
+    let esp_wifi = EspWifi::new(peripherals.modem, esp_sys_loop.clone(), Some(nvs))?;
+    let mut blocking_wifi = BlockingWifi::wrap(esp_wifi, esp_sys_loop)?;
+    blocking_wifi.set_configuration(&Configuration::Client(ClientConfiguration{
+        ssid:"".into(),
+        bssid:None,
+        auth_method:esp_idf_svc::wifi::AuthMethod::None,
+        password:"".into(),
+        channel:None
+    }))?;
+    blocking_wifi.start()?;
+    blocking_wifi.connect()?;
+    blocking_wifi.wait_netif_up()?;
+    while !blocking_wifi.is_connected().unwrap(){
+    }
+
+
+
+
+
+
+
+
     let mut driver = spi::SpiDeviceDriver::new_single(
         peripherals.spi2,
         peripherals.pins.gpio48,
@@ -41,7 +71,6 @@ fn main() -> Result<()> {
         Ok(epd) => epd,
         Err(e) => {
             log::error!("Error edp: {:?}", e.to_string());
-
             return Ok(());
         }
     };
@@ -49,10 +78,11 @@ fn main() -> Result<()> {
  
     let mut display = epd2in9_v2::Display2in9::default();
     display.set_rotation(DisplayRotation::Rotate90);
-
-
     display.clear(BinaryColor::Off)?;
-    let _ = Text::with_text_style("Hello Rust!!!!", Point::new(90,10), MonoTextStyleBuilder::new().font(&embedded_graphics::mono_font::ascii::FONT_10X20).text_color(BinaryColor::On).build(), TextStyleBuilder::new().baseline(embedded_graphics::text::Baseline::Top).build()).draw(&mut display);
+
+
+
+    let _ = Text::with_text_style("Hello wow", Point::new(90,10), MonoTextStyleBuilder::new().font(&embedded_graphics::mono_font::ascii::FONT_10X20).text_color(BinaryColor::On).build(), TextStyleBuilder::new().baseline(embedded_graphics::text::Baseline::Top).build()).draw(&mut display);
     epd.update_and_display_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
     Ok(())
 }
