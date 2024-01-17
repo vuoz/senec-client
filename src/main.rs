@@ -2,13 +2,12 @@ pub mod client;
 pub mod display;
 pub mod wifi;
 
-use embedded_graphics::draw_target::DrawTarget;
+use client::create_ws_client;
 use embedded_graphics::mono_font::MonoTextStyleBuilder;
 use embedded_graphics::pixelcolor::BinaryColor;
 use embedded_graphics::prelude::Point;
 use embedded_graphics::text::{Text, TextStyleBuilder};
 use embedded_graphics::Drawable;
-use epd_waveshare::graphics::VarDisplay;
 use epd_waveshare::prelude::WaveshareDisplay;
 use epd_waveshare::prelude::*;
 use esp_idf_hal::delay;

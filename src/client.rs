@@ -1,3 +1,10 @@
+use embedded_websocket::framer::Framer;
+use embedded_websocket::framer::ReadResult;
+use embedded_websocket::WebSocketOptions;
+use embedded_websocket::WebSocketSendMessageType;
+use std::net::TcpStream;
+
+use embedded_websocket::{Client, WebSocketClient};
 use esp_idf_svc::http::client::EspHttpConnection;
 
 pub fn create_request_client(
@@ -36,4 +43,30 @@ pub fn send_request<'a>(
     }
 
     return Ok(String::from_utf8(vec)?);
+}
+pub fn create_ws_client() -> anyhow::Result<()> {
+    let mut read_buf = [0; 4000];
+    let mut read_cursor = 0;
+    let mut write_buf = [0; 4000];
+    let mut frame_buf = [0; 4000];
+
+    let mut stream = TcpStream::connect("192.168.0.133:4000")?;
+    let mut client = WebSocketClient::new_client(rand::thread_rng());
+    let websocket_options = WebSocketOptions {
+        path: "/subscribe",
+        host: "localhost",
+        origin: "http://192.168.0.133",
+        sub_protocols: None,
+        additional_headers: None,
+    };
+    let mut framer = Framer::new(&mut read_buf, &mut read_cursor, &mut write_buf, &mut client);
+    match framer.connect(&mut stream, &websocket_options) {
+        Ok(_) => (),
+        Err(_) => return Err(anyhow::Error::msg("Error with connecting framer")),
+    }
+    while let Some(ReadResult::Text(s)) = framer.read(&mut stream, &mut frame_buf).ok() {
+        log::info!("Got Message: {:?}", s);
+    }
+
+    Ok(())
 }
