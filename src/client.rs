@@ -1,7 +1,9 @@
+use anyhow::anyhow;
 use embedded_websocket::framer::Framer;
 use embedded_websocket::framer::ReadResult;
 use embedded_websocket::WebSocketOptions;
 use embedded_websocket::WebSocketSendMessageType;
+use std::any;
 use std::net::TcpStream;
 
 use embedded_websocket::{Client, WebSocketClient};
@@ -50,20 +52,32 @@ pub fn create_ws_client() -> anyhow::Result<()> {
     let mut write_buf = [0; 4000];
     let mut frame_buf = [0; 4000];
 
-    let mut stream = TcpStream::connect("192.168.0.133:4000")?;
+    let mut stream = TcpStream::connect("192.168.0.148:4000")?;
     let mut client = WebSocketClient::new_client(rand::thread_rng());
     let websocket_options = WebSocketOptions {
         path: "/subscribe",
-        host: "localhost",
-        origin: "http://192.168.0.133",
+        host: "",
+        origin: "",
         sub_protocols: None,
         additional_headers: None,
     };
     let mut framer = Framer::new(&mut read_buf, &mut read_cursor, &mut write_buf, &mut client);
     match framer.connect(&mut stream, &websocket_options) {
         Ok(_) => (),
-        Err(_) => return Err(anyhow::Error::msg("Error with connecting framer")),
+        Err(err) => {
+            let err = match err {
+                embedded_websocket::framer::FramerError::Io(e) => anyhow::Error::from(e),
+                embedded_websocket::framer::FramerError::Utf8(e) => anyhow::Error::from(e),
+                embedded_websocket::framer::FramerError::WebSocket(e) => anyhow!("{:?}", e),
+                embedded_websocket::framer::FramerError::FrameTooLarge(_) => {
+                    anyhow::Error::msg("Frame to large")
+                }
+                embedded_websocket::framer::FramerError::HttpHeader(e) => anyhow!("{:?}", e),
+            };
+            return Err(err);
+        }
     }
+    log::info!("Connected to websocket");
     while let Some(ReadResult::Text(s)) = framer.read(&mut stream, &mut frame_buf).ok() {
         log::info!("Got Message: {:?}", s);
     }

@@ -26,10 +26,14 @@ fn main() -> Result<()> {
     let peripherals = Peripherals::take()?;
 
     let _wifi = connect_to_wifi(peripherals.modem)?;
+    /*
     let client = create_request_client()?;
     let response = send_request(client)?;
     log::info!("response: {}", response);
+    */
+    let _ = create_ws_client()?;
 
+    return Ok(());
     let (mut display, mut epd, mut driver) = init_display(
         peripherals.spi2,
         peripherals.pins.gpio48,
