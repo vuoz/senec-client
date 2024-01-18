@@ -1,14 +1,15 @@
 use anyhow::anyhow;
 use embedded_websocket::framer::Framer;
 use embedded_websocket::framer::ReadResult;
+use embedded_websocket::WebSocketClient;
 use embedded_websocket::WebSocketOptions;
-use embedded_websocket::WebSocketSendMessageType;
-use std::any;
+use esp_idf_svc::http::client::EspHttpConnection;
+use rand::rngs::ThreadRng;
 use std::net::TcpStream;
 
-use embedded_websocket::{Client, WebSocketClient};
-use esp_idf_svc::http::client::EspHttpConnection;
+use crate::types;
 
+// just for testing
 pub fn create_request_client(
 ) -> anyhow::Result<embedded_svc::http::client::Client<EspHttpConnection>> {
     let conn = esp_idf_svc::http::client::EspHttpConnection::new(&Default::default())?;
@@ -46,14 +47,53 @@ pub fn send_request<'a>(
 
     return Ok(String::from_utf8(vec)?);
 }
-pub fn create_ws_client() -> anyhow::Result<()> {
-    let mut read_buf = [0; 4000];
-    let mut read_cursor = 0;
-    let mut write_buf = [0; 4000];
-    let mut frame_buf = [0; 4000];
 
-    let mut stream = TcpStream::connect("192.168.0.148:4000")?;
-    let mut client = WebSocketClient::new_client(rand::thread_rng());
+//where the real code begins
+pub fn create_ws_client<'a>() -> anyhow::Result<()> {
+    let mut read_cursor = 0;
+    // we dont need this after the intial request was send since this is a write only websocket
+    let mut write_buf = [0; 1000];
+    let mut read_buf = [0; 1000];
+
+    let mut frame_buf = [0; 1000];
+
+    let (mut stream, options, mut client) = create_tcp_conn_and_client("192.168.0.148:4000")?;
+    let mut framer = Framer::new(&mut read_buf, &mut read_cursor, &mut write_buf, &mut client);
+    match framer.connect(&mut stream, &options) {
+        Ok(_) => (),
+        Err(e) => return Err(convert_connect_error(e)),
+    }
+    log::info!("Connected to websocket");
+
+    while let Some(ReadResult::Text(s)) = framer.read(&mut stream, &mut frame_buf).ok() {
+        if let Ok(json_values) = serde_json_core::from_str::<types::UiData>(s) {
+            log::info!("Got Message: {:?}", json_values);
+        } else {
+            log::info!("Error deserializing data!");
+        }
+    }
+
+    return Ok(());
+}
+pub fn convert_connect_error(
+    err: embedded_websocket::framer::FramerError<std::io::Error>,
+) -> anyhow::Error {
+    let err_anyhow = match err {
+        embedded_websocket::framer::FramerError::Io(e) => anyhow!("{:?}", e),
+        embedded_websocket::framer::FramerError::Utf8(e) => anyhow::Error::from(e),
+        embedded_websocket::framer::FramerError::WebSocket(e) => anyhow!("{:?}", e),
+        embedded_websocket::framer::FramerError::FrameTooLarge(n) => {
+            anyhow::Error::msg(format!("Frame to large: {}", n))
+        }
+        embedded_websocket::framer::FramerError::HttpHeader(e) => anyhow!("{:?}", e),
+    };
+    return err_anyhow;
+}
+pub fn create_tcp_conn_and_client(
+    addr: &str,
+) -> anyhow::Result<(TcpStream, WebSocketOptions, WebSocketClient<ThreadRng>)> {
+    let stream = TcpStream::connect(addr)?;
+    let client = WebSocketClient::new_client(rand::thread_rng());
     let websocket_options = WebSocketOptions {
         path: "/subscribe",
         host: "",
@@ -61,26 +101,5 @@ pub fn create_ws_client() -> anyhow::Result<()> {
         sub_protocols: None,
         additional_headers: None,
     };
-    let mut framer = Framer::new(&mut read_buf, &mut read_cursor, &mut write_buf, &mut client);
-    match framer.connect(&mut stream, &websocket_options) {
-        Ok(_) => (),
-        Err(err) => {
-            let err = match err {
-                embedded_websocket::framer::FramerError::Io(e) => anyhow::Error::from(e),
-                embedded_websocket::framer::FramerError::Utf8(e) => anyhow::Error::from(e),
-                embedded_websocket::framer::FramerError::WebSocket(e) => anyhow!("{:?}", e),
-                embedded_websocket::framer::FramerError::FrameTooLarge(_) => {
-                    anyhow::Error::msg("Frame to large")
-                }
-                embedded_websocket::framer::FramerError::HttpHeader(e) => anyhow!("{:?}", e),
-            };
-            return Err(err);
-        }
-    }
-    log::info!("Connected to websocket");
-    while let Some(ReadResult::Text(s)) = framer.read(&mut stream, &mut frame_buf).ok() {
-        log::info!("Got Message: {:?}", s);
-    }
-
-    Ok(())
+    return Ok((stream, websocket_options, client));
 }

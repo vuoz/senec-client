@@ -1,8 +1,13 @@
 use embedded_graphics::pixelcolor::BinaryColor;
 use embedded_graphics::prelude::DrawTarget;
 use embedded_graphics::prelude::OriginDimensions;
+use embedded_hal::{
+    blocking::{delay::*, spi::Write},
+    digital::v2::*,
+};
 use epd_waveshare::prelude::Display;
 use epd_waveshare::prelude::DisplayRotation;
+use epd_waveshare::prelude::QuickRefresh;
 use esp_idf_hal::delay::Ets;
 use esp_idf_hal::gpio::Gpio10;
 use esp_idf_hal::gpio::Gpio17;
@@ -25,7 +30,7 @@ use esp_idf_hal::spi::SpiDriver;
 use esp_idf_hal::delay;
 
 use epd_waveshare::{prelude::WaveshareDisplay, *};
-// trying to avoid stack overflows maybe :()
+// trying to avoid stack overflows maybe :() so we use heap alloc
 pub struct DisplayBoxed(Box<epd2in9_v2::Display2in9>);
 
 impl DrawTarget for DisplayBoxed {
@@ -58,17 +63,32 @@ impl DrawTarget for DisplayBoxed {
         self.0.fill_contiguous(area, colors)
     }
 }
-impl DisplayBoxed {
-    pub fn set_rotation(&mut self, rot: DisplayRotation) {
-        self.0.set_rotation(rot)
+impl Display for DisplayBoxed {
+    fn buffer(&self) -> &[u8] {
+        self.0.buffer()
     }
-    pub fn clear(&mut self, color: BinaryColor) -> anyhow::Result<()> {
-        self.0.clear(color).map_err(|err| anyhow::Error::from(err))
+    fn rotation(&self) -> DisplayRotation {
+        self.0.rotation()
     }
-    pub fn buffer(&self) -> &[u8] {
-        &self.0.buffer()
+    fn draw_helper(
+        &mut self,
+        width: u32,
+        height: u32,
+        pixel: embedded_graphics::Pixel<BinaryColor>,
+    ) -> Result<(), Self::Error> {
+        self.0.draw_helper(width, height, pixel)
+    }
+    fn clear_buffer(&mut self, background_color: prelude::Color) {
+        self.0.clear_buffer(background_color)
+    }
+    fn set_rotation(&mut self, rotation: DisplayRotation) {
+        self.0.set_rotation(rotation)
+    }
+    fn get_mut_buffer(&mut self) -> &mut [u8] {
+        self.0.get_mut_buffer()
     }
 }
+
 impl OriginDimensions for DisplayBoxed {
     fn size(&self) -> embedded_graphics::prelude::Size {
         self.0.size()
@@ -119,6 +139,90 @@ pub fn init_display<'a>(
     };
 
     let display = Box::new(epd2in9_v2::Display2in9::default());
-    let dis_boxed = DisplayBoxed { 0: display };
+    let mut dis_boxed = DisplayBoxed { 0: display };
+
+    dis_boxed.set_rotation(DisplayRotation::Rotate90);
+    dis_boxed.clear(BinaryColor::Off)?;
     return Ok((dis_boxed, epd, driver));
+}
+pub struct Epd2in9V2WithPartial<'a>(
+    epd2in9_v2::Epd2in9<
+        SpiDeviceDriver<'a, SpiDriver<'a>>,
+        PinDriver<'a, Gpio21, Output>,
+        PinDriver<'a, Gpio10, Input>,
+        PinDriver<'a, Gpio18, Output>,
+        PinDriver<'a, Gpio17, Output>,
+        Ets,
+    >,
+);
+impl<'a, SPI, CS, BUSY, DC, RST, DELAY> QuickRefresh<SPI, CS, BUSY, DC, RST, DELAY>
+    for Epd2in9V2WithPartial<'a>
+where
+    SPI: Write<u8>,
+    CS: OutputPin,
+    BUSY: InputPin,
+    DC: OutputPin,
+    RST: OutputPin,
+    DELAY: DelayMs<u8>,
+{
+    fn display_new_frame(&mut self, spi: &mut SPI, _delay: &mut DELAY) -> Result<(), SPI::Error> {
+        unimplemented!()
+    }
+    fn update_old_frame(
+        &mut self,
+        spi: &mut SPI,
+        buffer: &[u8],
+        delay: &mut DELAY,
+    ) -> Result<(), SPI::Error> {
+        unimplemented!()
+    }
+    fn update_new_frame(
+        &mut self,
+        spi: &mut SPI,
+        buffer: &[u8],
+        delay: &mut DELAY,
+    ) -> Result<(), SPI::Error> {
+        unimplemented!()
+    }
+    fn clear_partial_frame(
+        &mut self,
+        spi: &mut SPI,
+        x: u32,
+        y: u32,
+        width: u32,
+        height: u32,
+    ) -> Result<(), SPI::Error> {
+        unimplemented!()
+    }
+
+    fn update_partial_old_frame(
+        &mut self,
+        spi: &mut SPI,
+        buffer: &[u8],
+        x: u32,
+        y: u32,
+        width: u32,
+        height: u32,
+    ) -> Result<(), SPI::Error> {
+        unimplemented!()
+    }
+    fn update_partial_new_frame(
+        &mut self,
+        spi: &mut SPI,
+        buffer: &[u8],
+        x: u32,
+        y: u32,
+        width: u32,
+        height: u32,
+    ) -> Result<(), SPI::Error> {
+        unimplemented!()
+    }
+    fn update_and_display_new_frame(
+        &mut self,
+        spi: &mut SPI,
+        buffer: &[u8],
+        delay: &mut DELAY,
+    ) -> Result<(), SPI::Error> {
+        unimplemented!()
+    }
 }

@@ -35,6 +35,8 @@ embedded-svc = "0.26.4"
 anyhow = "1.0.79"
 embedded-websocket = "0.9.3"
 rand = "0.8.5"
-
+serde-json-core = "0.5.1"
+serde = "1.0.195"
+embedded-hal = "0.2.7"
 [build-dependencies]
 embuild = "0.31.3"
