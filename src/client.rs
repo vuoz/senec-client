@@ -57,7 +57,7 @@ pub fn create_ws_client<'a>() -> anyhow::Result<()> {
 
     let mut frame_buf = [0; 1000];
 
-    let (mut stream, options, mut client) = create_tcp_conn_and_client("192.168.0.148:4000")?;
+    let (mut stream, options, mut client) = create_tcp_conn_and_client("192.168.0.50:4000")?;
     let mut framer = Framer::new(&mut read_buf, &mut read_cursor, &mut write_buf, &mut client);
     match framer.connect(&mut stream, &options) {
         Ok(_) => (),
