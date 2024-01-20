@@ -3,11 +3,15 @@ pub mod display;
 pub mod types;
 pub mod wifi;
 
+use std::time::Duration;
+
 use client::{convert_connect_error, create_tcp_conn_and_client, create_ws_client};
 use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::mono_font::MonoTextStyleBuilder;
-use embedded_graphics::pixelcolor::BinaryColor;
-use embedded_graphics::prelude::Point;
+use embedded_graphics::pixelcolor::{BinaryColor, Rgb565};
+use embedded_graphics::prelude::{Point, RgbColor};
+use embedded_graphics::primitives::PrimitiveStyleBuilder;
+use embedded_graphics::primitives::{Primitive, Rectangle};
 use embedded_graphics::text::{Text, TextStyleBuilder};
 use embedded_graphics::Drawable;
 use embedded_websocket::framer::{Framer, ReadResult};
@@ -54,6 +58,7 @@ fn main() -> Result<()> {
 
     let mut frame_buf = [0; 1000];
 
+    log::info!("Starting tcp conn");
     let (mut stream, options, mut client) = create_tcp_conn_and_client("192.168.0.148:4000")?;
     log::info!("tcp conn success");
     let mut framer = Framer::new(&mut read_buf, &mut read_cursor, &mut write_buf, &mut client);
@@ -62,46 +67,51 @@ fn main() -> Result<()> {
         Ok(_) => (),
         Err(e) => return Err(convert_connect_error(e)),
     };
+
+    let mut curr_time = std::time::SystemTime::now();
+
     log::info!("Connected to websocket");
+    epd.clear_frame(&mut driver, &mut delay::Ets)?;
+
     display.clear(BinaryColor::Off)?;
+    // this should later be the ui and the icons etc
     epd.update_and_display_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+    epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
     while let Some(ReadResult::Text(s)) = framer.read(&mut stream, &mut frame_buf).ok() {
-        if let Ok((json_values, _)) = serde_json_core::from_str::<types::UiData>(s) {
+        // every 2 mins the screen will be refreshed
+        // to remove any remainders
+
+        let time_now = std::time::SystemTime::now();
+        let since = time_now.duration_since(curr_time)?;
+        if since > Duration::from_secs(120) {
+            curr_time = time_now;
             display.clear(BinaryColor::Off)?;
-            log::info!("Got message: {:?}", json_values);
-            let _ = Text::with_text_style(
-                &format!("CurrCharge: {:?} ", json_values.gui_bat_data_fuel_charge),
-                Point::new(40, 10),
-                default_text_style,
-                text_style_baseline,
-            )
-            .draw(&mut display)?;
-            let _ = Text::with_text_style(
-                &format!("CurrGridPow: {:?}", json_values.gui_grid_pow),
-                Point::new(40, 30),
-                default_text_style,
-                text_style_baseline,
-            )
-            .draw(&mut display)?;
             epd.update_and_display_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
-            //epd.update_partial_new_frame(spi, buffer, x, y, width, height)
-        } else {
-            display.clear(BinaryColor::Off)?;
-            let _ = Text::with_text_style(
-                "Error occured retrieving data from server!",
-                Point::new(50, 10),
-                default_text_style,
-                text_style_baseline,
-            )
-            .draw(&mut display)?;
-            Text::with_text_style(
-                "Please check the error-logs!",
-                Point::new(70, 30),
-                default_text_style,
-                text_style_baseline,
-            )
-            .draw(&mut display)?;
-            epd.update_and_display_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+        }
+
+        match serde_json_core::from_str::<types::UiData>(s) {
+            Ok((json_values, _)) => {
+                //clear the screen to avoid any overlaps
+                display.clear(BinaryColor::Off)?;
+                epd.update_new_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+                epd.display_new_frame(&mut driver, &mut delay::Ets)?;
+
+                log::info!("Got message: {:?}", json_values);
+
+                Text::new(
+                    &format!("{:?}", json_values.gui_grid_pow),
+                    Point::new(40, 20),
+                    default_text_style,
+                )
+                .draw(&mut display)?;
+                epd.update_new_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+                epd.display_new_frame(&mut driver, &mut delay::Ets)?;
+
+                continue;
+            }
+            Err(e) => {
+                log::info!("An error occured: {:?} Message: {:?}  ", e, s);
+            }
         }
     }
 
