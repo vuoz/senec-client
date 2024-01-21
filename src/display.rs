@@ -1,13 +1,9 @@
 use embedded_graphics::pixelcolor::BinaryColor;
 use embedded_graphics::prelude::DrawTarget;
 use embedded_graphics::prelude::OriginDimensions;
-use embedded_hal::{
-    blocking::{delay::*, spi::Write},
-    digital::v2::*,
-};
+
 use epd_waveshare::prelude::Display;
 use epd_waveshare::prelude::DisplayRotation;
-use epd_waveshare::prelude::QuickRefresh;
 use esp_idf_hal::delay::Ets;
 use esp_idf_hal::gpio::Gpio10;
 use esp_idf_hal::gpio::Gpio17;

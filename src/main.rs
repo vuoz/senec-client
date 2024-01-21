@@ -6,11 +6,11 @@ pub mod wifi;
 use embedded_graphics::prelude::Size;
 use std::time::Duration;
 
-use client::{convert_connect_error, create_tcp_conn_and_client, create_ws_client};
+use client::{convert_connect_error, create_tcp_conn_and_client};
 use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::mono_font::MonoTextStyleBuilder;
-use embedded_graphics::pixelcolor::{BinaryColor, Rgb565};
-use embedded_graphics::prelude::{Point, RgbColor};
+use embedded_graphics::pixelcolor::BinaryColor;
+use embedded_graphics::prelude::Point;
 use embedded_graphics::primitives::{Line, PrimitiveStyleBuilder};
 use embedded_graphics::primitives::{Primitive, Rectangle};
 use embedded_graphics::text::{Text, TextStyleBuilder};
@@ -50,7 +50,7 @@ fn main() -> Result<()> {
         .font(&embedded_graphics::mono_font::ascii::FONT_10X20)
         .text_color(BinaryColor::On)
         .build();
-    let text_style_baseline = TextStyleBuilder::new()
+    let _text_style_baseline = TextStyleBuilder::new()
         .baseline(embedded_graphics::text::Baseline::Top)
         .build();
     let mut read_cursor = 0;
