@@ -1,6 +1,11 @@
+use embedded_graphics::draw_target::DrawTarget;
+use embedded_graphics::mono_font::MonoTextStyle;
 use embedded_graphics::pixelcolor::BinaryColor;
-use embedded_graphics::prelude::DrawTarget;
 use embedded_graphics::prelude::OriginDimensions;
+use embedded_graphics::prelude::Point;
+use embedded_graphics::primitives::*;
+use embedded_graphics::text::Text;
+use embedded_graphics::Drawable;
 
 use epd_waveshare::prelude::Display;
 use epd_waveshare::prelude::DisplayRotation;
@@ -140,4 +145,134 @@ pub fn init_display<'a>(
     dis_boxed.set_rotation(DisplayRotation::Rotate90);
     dis_boxed.clear(BinaryColor::Off)?;
     return Ok((dis_boxed, epd, driver));
+}
+impl DisplayBoxed {
+    pub fn draw_default_display<'a>(
+        &mut self,
+        style: MonoTextStyle<'a, BinaryColor>,
+    ) -> anyhow::Result<()> {
+        Circle::new(Point::new(55, 2), 40)
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_color(BinaryColor::On)
+                    .stroke_width(2)
+                    .build(),
+            )
+            .draw(self)?;
+        Circle::new(Point::new(55, 86), 40)
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_color(BinaryColor::On)
+                    .stroke_width(2)
+                    .build(),
+            )
+            .draw(self)?;
+        Circle::new(Point::new(13, 44), 40)
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_width(2)
+                    .stroke_color(BinaryColor::On)
+                    .build(),
+            )
+            .draw(self)?;
+        Circle::new(Point::new(97, 44), 40)
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_width(2)
+                    .stroke_color(BinaryColor::On)
+                    .build(),
+            )
+            .draw(self)?;
+        Line::new(Point::new(149, 0), Point::new(149, 128))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_color(BinaryColor::On)
+                    .stroke_width(2)
+                    .build(),
+            )
+            .draw(self)?;
+        Line::new(Point::new(104, 0), Point::new(104, 20))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_color(BinaryColor::On)
+                    .stroke_width(2)
+                    .build(),
+            )
+            .draw(self)?;
+        Line::new(Point::new(104, 20), Point::new(149, 20))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_color(BinaryColor::On)
+                    .stroke_width(2)
+                    .build(),
+            )
+            .draw(self)?;
+
+        self.draw_text(style, "0.00", "0.00", "0.00", "0.00", "0:00PM")?;
+
+        Ok(())
+    }
+    pub fn draw_text<'a>(
+        &mut self,
+        style: MonoTextStyle<'a, BinaryColor>,
+        num1: &'a str,
+        num2: &'a str,
+        num3: &'a str,
+        num4: &'a str,
+        update: &'a str,
+    ) -> anyhow::Result<()> {
+        Text::new(num1, Point::new(65, 23), style).draw(self)?;
+        Text::new(num2, Point::new(65, 107), style).draw(self)?;
+        Text::new(num3, Point::new(22, 65), style).draw(self)?;
+        Text::new(num4, Point::new(107, 65), style).draw(self)?;
+        Text::new(update, Point::new(107, 10), style).draw(self)?;
+
+        Ok(())
+    }
+    pub fn clear_text(&mut self) -> anyhow::Result<()> {
+        self.fill_solid(
+            &Rectangle::new(
+                Point::new(65, 15),
+                embedded_graphics::prelude::Size::new(25, 10),
+            ),
+            BinaryColor::Off,
+        )?;
+        self.fill_solid(
+            &Rectangle::new(
+                Point::new(65, 99),
+                embedded_graphics::prelude::Size::new(25, 10),
+            ),
+            BinaryColor::Off,
+        )?;
+        self.fill_solid(
+            &Rectangle::new(
+                Point::new(22, 57),
+                embedded_graphics::prelude::Size::new(25, 10),
+            ),
+            BinaryColor::Off,
+        )?;
+        self.fill_solid(
+            &Rectangle::new(
+                Point::new(107, 57),
+                embedded_graphics::prelude::Size::new(25, 10),
+            ),
+            BinaryColor::Off,
+        )?;
+        self.fill_solid(
+            &Rectangle::new(
+                Point::new(105, 1),
+                embedded_graphics::prelude::Size::new(42, 18),
+            ),
+            BinaryColor::Off,
+        )?;
+        return Ok(());
+    }
+    pub fn display_error_message<'a>(
+        &mut self,
+        message: &str,
+        style: MonoTextStyle<'a, BinaryColor>,
+    ) -> anyhow::Result<()> {
+        Text::new(message, Point::new(58, 100), style).draw(self)?;
+        Ok(())
+    }
 }

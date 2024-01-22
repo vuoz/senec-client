@@ -47,7 +47,7 @@ fn main() -> Result<()> {
     )?;
     log::info!("Got the display");
     let default_text_style = MonoTextStyleBuilder::new()
-        .font(&embedded_graphics::mono_font::ascii::FONT_10X20)
+        .font(&embedded_graphics::mono_font::ascii::FONT_6X10)
         .text_color(BinaryColor::On)
         .build();
     let _text_style_baseline = TextStyleBuilder::new()
@@ -74,63 +74,51 @@ fn main() -> Result<()> {
 
     log::info!("Connected to websocket");
     epd.clear_frame(&mut driver, &mut delay::Ets)?;
-
     display.clear(BinaryColor::Off)?;
-    Line::new(Point::new(0, 40), Point::new(296, 40))
-        .into_styled(
-            PrimitiveStyleBuilder::new()
-                .stroke_width(10)
-                .stroke_color(BinaryColor::On)
-                .build(),
-        )
-        .draw(&mut display)?;
-    // this should later be the ui and the icons etc
+
+    display.draw_default_display(default_text_style)?;
     epd.update_and_display_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
     epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+
     while let Some(ReadResult::Text(s)) = framer.read(&mut stream, &mut frame_buf).ok() {
         // every 2 mins the screen will be refreshed fully
         // to remove any remainders
-
         let time_now = std::time::SystemTime::now();
         let since = time_now.duration_since(curr_time)?;
         if since > Duration::from_secs(60) {
-            curr_time = time_now;
-            display.clear_buffer(Color::White);
-            Line::new(Point::new(0, 40), Point::new(296, 40))
-                .into_styled(
-                    PrimitiveStyleBuilder::new()
-                        .stroke_width(10)
-                        .stroke_color(BinaryColor::On)
-                        .build(),
-                )
-                .draw(&mut display)?;
-
+            display.clear(BinaryColor::Off)?;
+            display.draw_default_display(default_text_style)?;
             epd.update_and_display_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
             epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+            curr_time = time_now;
         }
 
-        match serde_json_core::from_str::<types::UiData>(s) {
+        match serde_json_core::from_str::<types::UiDataWithWeather>(s) {
             Ok((json_values, _)) => {
                 log::info!("Got message: {:?}", json_values);
-                // remove the text from before from the buffer
-                display.fill_solid(
-                    &Rectangle::new(Point::new(45, 10), Size::new(110, 25)),
-                    BinaryColor::Off,
+                display.clear_text()?;
+                display.draw_text(
+                    default_text_style,
+                    json_values.gui_house_pow,
+                    json_values.gui_bat_data_fuel_charge,
+                    json_values.gui_charging_info,
+                    json_values.gui_house_pow,
+                    json_values.ts,
                 )?;
 
-                Text::new(
-                    json_values.gui_grid_pow,
-                    Point::new(45, 30),
-                    default_text_style,
-                )
-                .draw(&mut display)?;
                 epd.update_new_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
                 epd.display_new_frame(&mut driver, &mut delay::Ets)?;
+                epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
 
                 continue;
             }
             Err(e) => {
                 log::info!("An error occured: {:?} Message: {:?}  ", e, s);
+                display.clear(BinaryColor::Off)?;
+                display.display_error_message("Error decoding message!", default_text_style)?;
+                epd.update_and_display_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+                epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+                continue;
             }
         }
     }
