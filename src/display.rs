@@ -191,7 +191,7 @@ impl DisplayBoxed {
                     .build(),
             )
             .draw(self)?;
-        Line::new(Point::new(104, 0), Point::new(104, 20))
+        Line::new(Point::new(103, 0), Point::new(103, 20))
             .into_styled(
                 PrimitiveStyleBuilder::new()
                     .stroke_color(BinaryColor::On)
@@ -199,7 +199,7 @@ impl DisplayBoxed {
                     .build(),
             )
             .draw(self)?;
-        Line::new(Point::new(104, 20), Point::new(149, 20))
+        Line::new(Point::new(103, 20), Point::new(149, 20))
             .into_styled(
                 PrimitiveStyleBuilder::new()
                     .stroke_color(BinaryColor::On)
@@ -225,7 +225,7 @@ impl DisplayBoxed {
         Text::new(num2, Point::new(65, 107), style).draw(self)?;
         Text::new(num3, Point::new(22, 65), style).draw(self)?;
         Text::new(num4, Point::new(107, 65), style).draw(self)?;
-        Text::new(update, Point::new(107, 10), style).draw(self)?;
+        Text::new(update, Point::new(109, 10), style).draw(self)?;
 
         Ok(())
     }
