@@ -151,6 +151,7 @@ impl DisplayBoxed {
         &mut self,
         style: MonoTextStyle<'a, BinaryColor>,
     ) -> anyhow::Result<()> {
+        //Circle top
         Circle::new(Point::new(55, 2), 40)
             .into_styled(
                 PrimitiveStyleBuilder::new()
@@ -159,6 +160,7 @@ impl DisplayBoxed {
                     .build(),
             )
             .draw(self)?;
+        // Circle buttom
         Circle::new(Point::new(55, 86), 40)
             .into_styled(
                 PrimitiveStyleBuilder::new()
@@ -167,6 +169,8 @@ impl DisplayBoxed {
                     .build(),
             )
             .draw(self)?;
+
+        // Circle left
         Circle::new(Point::new(13, 44), 40)
             .into_styled(
                 PrimitiveStyleBuilder::new()
@@ -175,6 +179,8 @@ impl DisplayBoxed {
                     .build(),
             )
             .draw(self)?;
+
+        //Circle right
         Circle::new(Point::new(97, 44), 40)
             .into_styled(
                 PrimitiveStyleBuilder::new()
@@ -215,17 +221,26 @@ impl DisplayBoxed {
     pub fn draw_text<'a>(
         &mut self,
         style: MonoTextStyle<'a, BinaryColor>,
-        num1: &'a str,
-        num2: &'a str,
-        num3: &'a str,
-        num4: &'a str,
+        circle_top: &'a str,
+        circle_bottom: &'a str,
+        circle_left: &'a str,
+        circle_right: &'a str,
         update: &'a str,
     ) -> anyhow::Result<()> {
-        Text::new(num1, Point::new(65, 23), style).draw(self)?;
-        Text::new(num2, Point::new(65, 107), style).draw(self)?;
-        Text::new(num3, Point::new(22, 65), style).draw(self)?;
-        Text::new(num4, Point::new(107, 65), style).draw(self)?;
-        Text::new(update, Point::new(109, 10), style).draw(self)?;
+        // Circle top
+        Text::new(circle_top, Point::new(65, 23), style).draw(self)?;
+
+        // Circle bottom
+        Text::new(circle_bottom, Point::new(65, 107), style).draw(self)?;
+
+        // Circle left
+        Text::new(circle_left, Point::new(22, 65), style).draw(self)?;
+
+        // Circle right
+        Text::new(circle_right, Point::new(107, 65), style).draw(self)?;
+
+        // Time
+        Text::new(update, Point::new(107, 10), style).draw(self)?;
 
         Ok(())
     }

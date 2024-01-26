@@ -3,7 +3,6 @@ pub mod display;
 pub mod types;
 pub mod wifi;
 
-use embedded_graphics::prelude::Size;
 use std::time::Duration;
 
 use client::{convert_connect_error, create_tcp_conn_and_client};
@@ -11,8 +10,6 @@ use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::mono_font::MonoTextStyleBuilder;
 use embedded_graphics::pixelcolor::BinaryColor;
 use embedded_graphics::prelude::Point;
-use embedded_graphics::primitives::{Line, PrimitiveStyleBuilder};
-use embedded_graphics::primitives::{Primitive, Rectangle};
 use embedded_graphics::text::{Text, TextStyleBuilder};
 use embedded_graphics::Drawable;
 use embedded_websocket::framer::{Framer, ReadResult};
@@ -102,7 +99,7 @@ fn main() -> Result<()> {
                     json_values.gui_house_pow,
                     json_values.gui_bat_data_fuel_charge,
                     json_values.gui_charging_info,
-                    json_values.gui_house_pow,
+                    json_values.gui_grid_pow,
                     json_values.ts,
                 )?;
 
@@ -125,7 +122,7 @@ fn main() -> Result<()> {
     display.clear_buffer(Color::White);
     Text::new(
         "Disconnected from Websocket!",
-        Point::new(5, 40),
+        Point::new(40, 40),
         default_text_style,
     )
     .draw(&mut display)?;
