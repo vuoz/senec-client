@@ -404,6 +404,30 @@ impl DisplayBoxed {
                 .build(),
         )
         .draw(self)?;
+
+        let pos = [(65, 23), (22, 65), (107, 65)];
+        pos.iter().try_for_each(|pos| -> anyhow::Result<()> {
+            Text::new(
+                "kW",
+                Point::new(pos.0 + 5, pos.1 + 11),
+                MonoTextStyleBuilder::new()
+                    .font(&embedded_graphics::mono_font::ascii::FONT_6X10)
+                    .text_color(BinaryColor::On)
+                    .build(),
+            )
+            .draw(self)?;
+            Ok(())
+        })?;
+
+        Text::new(
+            "%",
+            Point::new(71, 120),
+            MonoTextStyleBuilder::new()
+                .font(&embedded_graphics::mono_font::ascii::FONT_9X15)
+                .text_color(BinaryColor::On)
+                .build(),
+        )
+        .draw(self)?;
         self.draw_text(style, "0.00", "0.00", "0.00", "0.00", "0:00PM")?;
 
         Ok(())
