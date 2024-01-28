@@ -98,7 +98,7 @@ fn main() -> Result<()> {
                     default_text_style,
                     json_values.gui_house_pow,
                     json_values.gui_bat_data_fuel_charge,
-                    json_values.gui_charging_info,
+                    json_values.gui_inverter_power,
                     json_values.gui_grid_pow,
                     json_values.ts,
                 )?;

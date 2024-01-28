@@ -1,5 +1,6 @@
 use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::iterator::PixelIteratorExt;
+use embedded_graphics::mono_font::MonoTextStyleBuilder;
 use embedded_graphics::prelude::Size;
 
 use embedded_graphics::mono_font::MonoTextStyle;
@@ -394,6 +395,15 @@ impl DisplayBoxed {
             )
             .draw(self)?;
 
+        Text::new(
+            "%",
+            Point::new(71, 120),
+            MonoTextStyleBuilder::new()
+                .font(&embedded_graphics::mono_font::ascii::FONT_9X15)
+                .text_color(BinaryColor::On)
+                .build(),
+        )
+        .draw(self)?;
         self.draw_text(style, "0.00", "0.00", "0.00", "0.00", "0:00PM")?;
 
         Ok(())
@@ -408,16 +418,33 @@ impl DisplayBoxed {
         update: &'a str,
     ) -> anyhow::Result<()> {
         // Circle top
-        Text::new(circle_top, Point::new(65, 23), style).draw(self)?;
+        // normally we have 3 digits
+        if circle_top == "0" {
+            Text::new(circle_top, Point::new(72, 23), style).draw(self)?;
+        } else {
+            Text::new(circle_top, Point::new(65, 23), style).draw(self)?;
+        }
 
         // Circle bottom
-        Text::new(circle_bottom, Point::new(65, 107), style).draw(self)?;
+        if circle_bottom == "0" {
+            Text::new(circle_bottom, Point::new(72, 107), style).draw(self)?;
+        } else {
+            Text::new(circle_bottom, Point::new(65, 107), style).draw(self)?;
+        }
 
         // Circle left
-        Text::new(circle_left, Point::new(22, 65), style).draw(self)?;
+        if circle_left == "0" {
+            Text::new(circle_left, Point::new(29, 65), style).draw(self)?;
+        } else {
+            Text::new(circle_left, Point::new(22, 65), style).draw(self)?;
+        }
 
         // Circle right
-        Text::new(circle_right, Point::new(107, 65), style).draw(self)?;
+        if circle_right == "0" {
+            Text::new(circle_right, Point::new(114, 65), style).draw(self)?;
+        } else {
+            Text::new(circle_right, Point::new(107, 65), style).draw(self)?;
+        }
 
         // Time
         Text::new(update, Point::new(107, 10), style).draw(self)?;
