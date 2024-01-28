@@ -1,4 +1,7 @@
 use embedded_graphics::draw_target::DrawTarget;
+use embedded_graphics::iterator::PixelIteratorExt;
+use embedded_graphics::prelude::Size;
+
 use embedded_graphics::mono_font::MonoTextStyle;
 use embedded_graphics::pixelcolor::BinaryColor;
 use embedded_graphics::prelude::OriginDimensions;
@@ -6,6 +9,7 @@ use embedded_graphics::prelude::Point;
 use embedded_graphics::primitives::*;
 use embedded_graphics::text::Text;
 use embedded_graphics::Drawable;
+use embedded_graphics::Pixel;
 
 use epd_waveshare::prelude::Display;
 use epd_waveshare::prelude::DisplayRotation;
@@ -146,6 +150,82 @@ pub fn init_display<'a>(
     dis_boxed.clear(BinaryColor::Off)?;
     return Ok((dis_boxed, epd, driver));
 }
+#[rustfmt::skip]
+static HOUSE_PATTERN: [u8; 270] = [
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+    0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+    0,0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 
+    0,0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 
+    0,0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 
+    0,0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 
+    0,0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 
+    0,0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+    0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+    0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+];
+
+#[rustfmt::skip]
+static LIGHTNING_BOLT_PATTERN: [u8; 270] = [
+    0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+];
+#[rustfmt::skip]
+static BATTERY_PATTERN: [u8; 270] = [
+    0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+];
+
+#[rustfmt::skip]
+static SUN_PATTERN: [u8; 270] = [
+
+    0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0,
+    0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0,
+    0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+    0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0,
+    0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
+    0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
+    0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0,
+    0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+    0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0,
+    0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+];
 impl DisplayBoxed {
     pub fn draw_default_display<'a>(
         &mut self,
@@ -188,6 +268,106 @@ impl DisplayBoxed {
                     .stroke_color(BinaryColor::On)
                     .build(),
             )
+            .draw(self)?;
+        // Solids for the icons
+        self.fill_solid(
+            &Rectangle::new(Point::new(66, 0), Size::new(18, 15)),
+            BinaryColor::Off,
+        )?;
+        self.fill_solid(
+            &Rectangle::new(Point::new(66, 84), Size::new(18, 15)),
+            BinaryColor::Off,
+        )?;
+        self.fill_solid(
+            &Rectangle::new(Point::new(24, 42), Size::new(18, 15)),
+            BinaryColor::Off,
+        )?;
+        self.fill_solid(
+            &Rectangle::new(Point::new(108, 42), Size::new(18, 15)),
+            BinaryColor::Off,
+        )?;
+
+        // icons
+        HOUSE_PATTERN
+            .iter()
+            .enumerate()
+            .map(|(idx, num)| {
+                let x = 66 + (idx % 18);
+                let y = 0 + (idx / 18);
+                let color = {
+                    if num == &0 {
+                        BinaryColor::Off
+                    } else if num == &1 {
+                        BinaryColor::On
+                    } else {
+                        BinaryColor::Off
+                    }
+                };
+                Pixel(Point::new(x as i32, y as i32), color)
+            })
+            .draw(self)?;
+        LIGHTNING_BOLT_PATTERN
+            .iter()
+            .enumerate()
+            .map(|(idx, num)| {
+                let x = 109 + (idx % 18);
+                let y = 43 + (idx / 18);
+                let color = {
+                    if num == &0 {
+                        BinaryColor::Off
+                    } else if num == &1 {
+                        BinaryColor::On
+                    } else {
+                        BinaryColor::Off
+                    }
+                };
+                Pixel(Point::new(x as i32, y as i32), color)
+            })
+            .draw(self)?;
+        BATTERY_PATTERN
+            .iter()
+            .enumerate()
+            .map(|(idx, num)| {
+                let x = 66 + (idx % 18);
+                let y = 84 + (idx / 18);
+                let color = {
+                    if num == &0 {
+                        BinaryColor::Off
+                    } else if num == &1 {
+                        BinaryColor::On
+                    } else {
+                        BinaryColor::Off
+                    }
+                };
+                Pixel(Point::new(x as i32, y as i32), color)
+            })
+            .draw(self)?;
+        Line::new(Point::new(66 + 12, 85), Point::new(71, 96))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_color(BinaryColor::On)
+                    .stroke_width(1)
+                    .build(),
+            )
+            .draw(self)?;
+
+        SUN_PATTERN
+            .iter()
+            .enumerate()
+            .map(|(idx, num)| {
+                let x = 24 + (idx % 18);
+                let y = 42 + (idx / 18);
+                let color = {
+                    if num == &0 {
+                        BinaryColor::Off
+                    } else if num == &1 {
+                        BinaryColor::On
+                    } else {
+                        BinaryColor::Off
+                    }
+                };
+                Pixel(Point::new(x as i32, y as i32), color)
+            })
             .draw(self)?;
         Line::new(Point::new(149, 0), Point::new(149, 128))
             .into_styled(
