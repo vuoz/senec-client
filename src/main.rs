@@ -122,7 +122,7 @@ fn main() -> Result<()> {
     display.clear_buffer(Color::White);
     Text::new(
         "Disconnected from Websocket!",
-        Point::new(40, 40),
+        Point::new(60, 40),
         default_text_style,
     )
     .draw(&mut display)?;

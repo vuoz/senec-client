@@ -420,28 +420,28 @@ impl DisplayBoxed {
         // Circle top
         // normally we have 3 digits
         if circle_top == "0" {
-            Text::new(circle_top, Point::new(72, 23), style).draw(self)?;
+            Text::new(circle_top, Point::new(74, 23), style).draw(self)?;
         } else {
             Text::new(circle_top, Point::new(65, 23), style).draw(self)?;
         }
 
         // Circle bottom
         if circle_bottom == "0" {
-            Text::new(circle_bottom, Point::new(72, 107), style).draw(self)?;
+            Text::new(circle_bottom, Point::new(74, 107), style).draw(self)?;
         } else {
             Text::new(circle_bottom, Point::new(65, 107), style).draw(self)?;
         }
 
         // Circle left
         if circle_left == "0" {
-            Text::new(circle_left, Point::new(29, 65), style).draw(self)?;
+            Text::new(circle_left, Point::new(31, 65), style).draw(self)?;
         } else {
             Text::new(circle_left, Point::new(22, 65), style).draw(self)?;
         }
 
         // Circle right
         if circle_right == "0" {
-            Text::new(circle_right, Point::new(114, 65), style).draw(self)?;
+            Text::new(circle_right, Point::new(115, 65), style).draw(self)?;
         } else {
             Text::new(circle_right, Point::new(107, 65), style).draw(self)?;
         }
