@@ -57,7 +57,7 @@ fn main() -> Result<()> {
     let mut write_buf = [0; 1000];
     let mut read_buf = [0; 1000];
 
-    let mut frame_buf = [0; 10000];
+    let mut frame_buf = [0; 1000];
 
     log::info!("Starting tcp conn");
     let (mut stream, options, mut client) = create_tcp_conn_and_client("192.168.0.131:4000")?;
