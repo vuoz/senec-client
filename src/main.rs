@@ -22,11 +22,13 @@ use esp_idf_hal::peripherals::Peripherals;
 
 use crate::display::init_display;
 use crate::wifi::connect_to_wifi;
+
 fn main() -> Result<()> {
     esp_idf_svc::sys::link_patches();
 
     esp_idf_svc::log::EspLogger::initialize_default();
 
+    // get peripherals
     let peripherals = Peripherals::take()?;
 
     // connecting to wifi
@@ -55,7 +57,7 @@ fn main() -> Result<()> {
     let mut write_buf = [0; 1000];
     let mut read_buf = [0; 1000];
 
-    let mut frame_buf = [0; 1000];
+    let mut frame_buf = [0; 10000];
 
     log::info!("Starting tcp conn");
     let (mut stream, options, mut client) = create_tcp_conn_and_client("192.168.0.131:4000")?;
@@ -67,55 +69,80 @@ fn main() -> Result<()> {
         Err(e) => return Err(convert_connect_error(e)),
     };
 
-    let mut curr_time = std::time::SystemTime::now();
-
     log::info!("Connected to websocket");
+
+    // Clear the display from any remainders
     epd.clear_frame(&mut driver, &mut delay::Ets)?;
     display.clear(BinaryColor::Off)?;
 
+    // draw the ui with default values
     display.draw_default_display(default_text_style)?;
     epd.update_and_display_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
     epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
 
-    while let Some(ReadResult::Text(s)) = framer.read(&mut stream, &mut frame_buf).ok() {
-        // every 2 mins the screen will be refreshed fully
-        // to remove any remainders
-        let time_now = std::time::SystemTime::now();
-        let since = time_now.duration_since(curr_time)?;
-        if since > Duration::from_secs(60) {
-            display.clear(BinaryColor::Off)?;
-            display.draw_default_display(default_text_style)?;
-            epd.update_and_display_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
-            epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
-            curr_time = time_now;
-        }
+    // start time
+    let mut curr_time = std::time::SystemTime::now();
 
-        match serde_json_core::from_str::<types::UiDataWithWeather>(s) {
-            Ok((json_values, _)) => {
-                log::info!("Got message: {:?}", json_values);
-                display.clear_text()?;
-                display.draw_text(
-                    default_text_style,
-                    json_values.gui_house_pow,
-                    json_values.gui_bat_data_fuel_charge,
-                    json_values.gui_inverter_power,
-                    json_values.gui_grid_pow,
-                    json_values.ts,
-                )?;
+    loop {
+        match framer.read(&mut stream, &mut frame_buf) {
+            Ok(read_res) => match read_res {
+                ReadResult::Binary(_) => continue,
+                ReadResult::Pong(_) => continue,
+                ReadResult::Closed => continue,
+                ReadResult::Text(t) => {
+                    let time_now = std::time::SystemTime::now();
+                    let since = time_now.duration_since(curr_time)?;
+                    if since > Duration::from_secs(60) {
+                        display.clear(BinaryColor::Off)?;
+                        display.draw_default_display(default_text_style)?;
+                        epd.update_and_display_frame(
+                            &mut driver,
+                            display.buffer(),
+                            &mut delay::Ets,
+                        )?;
+                        epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+                        curr_time = time_now;
+                    }
+                    match serde_json_core::from_str::<types::UiDataWithWeather>(t) {
+                        Ok((json_values, _)) => {
+                            log::info!("Got message: {:?}", json_values);
+                            display.clear_text()?;
+                            display.draw_text(
+                                default_text_style,
+                                json_values.gui_house_pow,
+                                json_values.gui_bat_data_fuel_charge,
+                                json_values.gui_inverter_power,
+                                json_values.gui_grid_pow,
+                                json_values.ts,
+                            )?;
 
-                epd.update_new_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
-                epd.display_new_frame(&mut driver, &mut delay::Ets)?;
-                epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+                            epd.update_new_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+                            epd.display_new_frame(&mut driver, &mut delay::Ets)?;
+                            epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
 
-                continue;
-            }
+                            continue;
+                        }
+                        Err(e) => {
+                            log::info!("An error occured: {:?} Message: {:?}  ", e, t);
+                            display.clear(BinaryColor::Off)?;
+                            display.display_error_message(
+                                "Error decoding message!",
+                                default_text_style,
+                            )?;
+                            epd.update_and_display_frame(
+                                &mut driver,
+                                display.buffer(),
+                                &mut delay::Ets,
+                            )?;
+                            epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+                            continue;
+                        }
+                    }
+                }
+            },
             Err(e) => {
-                log::info!("An error occured: {:?} Message: {:?}  ", e, s);
-                display.clear(BinaryColor::Off)?;
-                display.display_error_message("Error decoding message!", default_text_style)?;
-                epd.update_and_display_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
-                epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
-                continue;
+                println!("Error :{:?}", e);
+                break;
             }
         }
     }

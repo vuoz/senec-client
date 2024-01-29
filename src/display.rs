@@ -36,7 +36,7 @@ use esp_idf_hal::spi::SpiDriver;
 use esp_idf_hal::delay;
 
 use epd_waveshare::{prelude::WaveshareDisplay, *};
-// trying to avoid stack overflows maybe :() so we use heap alloc
+// trying to avoid stack overflows  so we use heap alloc
 pub struct DisplayBoxed(Box<epd2in9_v2::Display2in9>);
 
 impl DrawTarget for DisplayBoxed {
@@ -443,28 +443,28 @@ impl DisplayBoxed {
     ) -> anyhow::Result<()> {
         // Circle top
         // normally we have 3 digits
-        if circle_top == "0" {
+        if circle_top.len() == 1 {
             Text::new(circle_top, Point::new(74, 23), style).draw(self)?;
         } else {
             Text::new(circle_top, Point::new(65, 23), style).draw(self)?;
         }
 
         // Circle bottom
-        if circle_bottom == "0" {
+        if circle_bottom.len() == 1 {
             Text::new(circle_bottom, Point::new(74, 107), style).draw(self)?;
         } else {
             Text::new(circle_bottom, Point::new(65, 107), style).draw(self)?;
         }
 
         // Circle left
-        if circle_left == "0" {
+        if circle_left.len() == 1 {
             Text::new(circle_left, Point::new(31, 65), style).draw(self)?;
         } else {
             Text::new(circle_left, Point::new(22, 65), style).draw(self)?;
         }
 
         // Circle right
-        if circle_right == "0" {
+        if circle_right.len() == 1 {
             Text::new(circle_right, Point::new(115, 65), style).draw(self)?;
         } else {
             Text::new(circle_right, Point::new(107, 65), style).draw(self)?;
