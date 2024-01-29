@@ -105,14 +105,16 @@ fn main() -> Result<()> {
                     }
                     match serde_json_core::from_str::<types::UiDataWithWeather>(t) {
                         Ok((json_values, _)) => {
-                            log::info!("Got message: {:?}", json_values);
                             display.clear_text()?;
                             display.draw_text(
                                 default_text_style,
                                 json_values.gui_house_pow,
                                 json_values.gui_bat_data_fuel_charge,
                                 json_values.gui_inverter_power,
-                                json_values.gui_grid_pow,
+                                &match json_values.gui_grid_pow.starts_with("-") {
+                                    true => format!("{}", json_values.gui_grid_pow),
+                                    false => format!("+{}", json_values.gui_grid_pow),
+                                },
                                 json_values.ts,
                             )?;
 

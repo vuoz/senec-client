@@ -16,6 +16,8 @@ pub struct UiData<'a> {
 pub struct UiDataWithWeather<'a> {
     pub ts: &'a str,
     pub stat_state: &'a str,
+
+    // this is the power used to charge the battery
     pub gui_bat_data_power: &'a str,
     pub gui_inverter_power: &'a str,
     pub gui_house_pow: &'a str,
