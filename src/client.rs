@@ -1,38 +1,9 @@
-use crate::types;
 use anyhow::anyhow;
-use embedded_websocket::framer::Framer;
-use embedded_websocket::framer::ReadResult;
 use embedded_websocket::WebSocketClient;
 use embedded_websocket::WebSocketOptions;
 use rand::rngs::ThreadRng;
 use std::net::TcpStream;
 
-pub fn create_ws_client<'a>() -> anyhow::Result<()> {
-    let mut read_cursor = 0;
-    // we dont need this after the intial request was send since this is a write only websocket
-    let mut write_buf = [0; 1000];
-    let mut read_buf = [0; 1000];
-
-    let mut frame_buf = [0; 1000];
-
-    let (mut stream, options, mut client) = create_tcp_conn_and_client("192.168.0.50:4000")?;
-    let mut framer = Framer::new(&mut read_buf, &mut read_cursor, &mut write_buf, &mut client);
-    match framer.connect(&mut stream, &options) {
-        Ok(_) => (),
-        Err(e) => return Err(convert_connect_error(e)),
-    }
-    log::info!("Connected to websocket");
-
-    while let Some(ReadResult::Text(s)) = framer.read(&mut stream, &mut frame_buf).ok() {
-        if let Ok(json_values) = serde_json_core::from_str::<types::UiData>(s) {
-            log::info!("Got Message: {:?}", json_values);
-        } else {
-            log::info!("Error deserializing data!");
-        }
-    }
-
-    return Ok(());
-}
 pub fn convert_connect_error(
     err: embedded_websocket::framer::FramerError<std::io::Error>,
 ) -> anyhow::Error {
