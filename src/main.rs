@@ -109,7 +109,12 @@ fn main() -> Result<()> {
                             display.draw_text(
                                 default_text_style,
                                 json_values.gui_house_pow,
-                                json_values.gui_bat_data_fuel_charge,
+                                &match json_values.gui_bat_data_power.contains("-") {
+                                    // meaning the battery is being charged
+                                    false => format!("+{}", json_values.gui_bat_data_fuel_charge),
+                                    // meaning battery is being discharged
+                                    true => format!("-{}", json_values.gui_bat_data_fuel_charge),
+                                },
                                 json_values.gui_inverter_power,
                                 &match json_values.gui_grid_pow.starts_with("-") {
                                     true => format!("{}", json_values.gui_grid_pow),
@@ -117,6 +122,7 @@ fn main() -> Result<()> {
                                 },
                                 json_values.ts,
                             )?;
+                            log::info!("{}", json_values.gui_bat_data_power);
 
                             epd.update_new_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
                             epd.display_new_frame(&mut driver, &mut delay::Ets)?;

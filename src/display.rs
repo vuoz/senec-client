@@ -428,7 +428,7 @@ impl DisplayBoxed {
                 .build(),
         )
         .draw(self)?;
-        self.draw_text(style, "0.00", "0.00", "0.00", "-0.00", "0:00PM")?;
+        self.draw_text(style, "0.00", "-0.00", "0.00", "-0.00", "0:00PM")?;
 
         Ok(())
     }
@@ -450,10 +450,10 @@ impl DisplayBoxed {
         }
 
         // Circle bottom
-        if circle_bottom.len() == 1 {
-            Text::new(circle_bottom, Point::new(74, 107), style).draw(self)?;
+        if circle_bottom.len() == 2 {
+            Text::new(circle_bottom, Point::new(69, 107), style).draw(self)?;
         } else {
-            Text::new(circle_bottom, Point::new(65, 107), style).draw(self)?;
+            Text::new(circle_bottom, Point::new(60, 107), style).draw(self)?;
         }
 
         // Circle left
