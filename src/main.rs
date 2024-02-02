@@ -103,7 +103,9 @@ fn main() -> Result<()> {
                         epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
                         curr_time = time_now;
                     }
-                    match serde_json_core::from_str::<types::UiDataWithWeather>(t) {
+                    log::info!("Got a message {}", t);
+
+                    match serde_json_core::from_str::<types::UiDataWithWeatherNew>(t) {
                         Ok((json_values, _)) => {
                             display.clear_text()?;
                             display.draw_text(
