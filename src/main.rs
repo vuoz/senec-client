@@ -53,9 +53,9 @@ fn main() -> Result<()> {
         .baseline(embedded_graphics::text::Baseline::Top)
         .build();
     let mut read_cursor = 0;
-    // we dont need this after the intial request was send since this is a write only websocket
-    let mut write_buf = [0; 1000];
-    let mut read_buf = [0; 1000];
+    // we dont need this after the intial request was send
+    let mut write_buf = [0; 500];
+    let mut read_buf = [0; 500];
 
     let mut frame_buf = [0; 1000];
 
@@ -125,10 +125,10 @@ fn main() -> Result<()> {
                                 json_values.ts,
                             )?;
 
-                            // to the house
+                            // to the house always active
                             display.draw_connections(display::ConnectionDirection::Top(true))?;
 
-                            log::info!("{}", json_values.gui_bat_data_power);
+                            // will rework the conditions in the future
 
                             if json_values.gui_bat_data_power != "0.00"
                                 && !json_values.gui_bat_data_power.starts_with("-")

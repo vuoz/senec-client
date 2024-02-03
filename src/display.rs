@@ -464,6 +464,8 @@ impl DisplayBoxed {
         // Circle bottom
         if circle_bottom.len() == 2 {
             Text::new(circle_bottom, Point::new(69, 107), style).draw(self)?;
+        } else if circle_bottom.len() == 4 {
+            Text::new(circle_bottom, Point::new(64, 107), style).draw(self)?;
         } else {
             Text::new(circle_bottom, Point::new(60, 107), style).draw(self)?;
         }
@@ -483,7 +485,11 @@ impl DisplayBoxed {
         }
 
         // Time
-        Text::new(update, Point::new(107, 10), style).draw(self)?;
+        if update.len() == 6 {
+            Text::new(update, Point::new(110, 10), style).draw(self)?;
+        } else {
+            Text::new(update, Point::new(107, 10), style).draw(self)?;
+        }
 
         Ok(())
     }
@@ -497,8 +503,8 @@ impl DisplayBoxed {
         )?;
         self.fill_solid(
             &Rectangle::new(
-                Point::new(65, 99),
-                embedded_graphics::prelude::Size::new(25, 10),
+                Point::new(60, 99),
+                embedded_graphics::prelude::Size::new(30, 10),
             ),
             BinaryColor::Off,
         )?;
@@ -511,8 +517,8 @@ impl DisplayBoxed {
         )?;
         self.fill_solid(
             &Rectangle::new(
-                Point::new(107, 57),
-                embedded_graphics::prelude::Size::new(25, 10),
+                Point::new(102, 57),
+                embedded_graphics::prelude::Size::new(30, 10),
             ),
             BinaryColor::Off,
         )?;
