@@ -124,7 +124,41 @@ fn main() -> Result<()> {
                                 },
                                 json_values.ts,
                             )?;
+
+                            // to the house
+                            display.draw_connections(display::ConnectionDirection::Top(true))?;
+
                             log::info!("{}", json_values.gui_bat_data_power);
+
+                            if json_values.gui_bat_data_power != "0.00"
+                                && !json_values.gui_bat_data_power.starts_with("-")
+                            {
+                                // to the battery since it is being charged
+                                display
+                                    .draw_connections(display::ConnectionDirection::Bottom(true))?;
+                            }
+                            if json_values.gui_bat_data_power.starts_with("-")
+                                && json_values.gui_bat_data_power != "0.00"
+                            {
+                                display.draw_connections(display::ConnectionDirection::Top(true))?
+                            }
+
+                            // power send to the grid
+                            if json_values.gui_grid_pow.starts_with("-") {
+                                display
+                                    .draw_connections(display::ConnectionDirection::Right(true))?;
+                            } else if !json_values.gui_grid_pow.starts_with("-") {
+                                // power taken from the grid
+                                display
+                                    .draw_connections(display::ConnectionDirection::Right(false))?;
+                            }
+
+                            if json_values.gui_inverter_power != "0.00"
+                                && !json_values.gui_inverter_power.starts_with("-")
+                            {
+                                display
+                                    .draw_connections(display::ConnectionDirection::Left(false))?;
+                            }
 
                             epd.update_new_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
                             epd.display_new_frame(&mut driver, &mut delay::Ets)?;

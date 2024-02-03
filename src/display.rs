@@ -36,6 +36,18 @@ use esp_idf_hal::spi::SpiDriver;
 use esp_idf_hal::delay;
 
 use epd_waveshare::{prelude::WaveshareDisplay, *};
+enum ArrowDirection {
+    Left,
+    Right,
+    Down,
+    Up,
+}
+pub enum ConnectionDirection {
+    Top(bool),
+    Right(bool),
+    Left(bool),
+    Bottom(bool),
+}
 // trying to avoid stack overflows  so we use heap alloc
 pub struct DisplayBoxed(Box<epd2in9_v2::Display2in9>);
 
@@ -511,6 +523,10 @@ impl DisplayBoxed {
             ),
             BinaryColor::Off,
         )?;
+        self.fill_solid(
+            &Rectangle::new(Point::new(54, 43), Size::new(42, 41)),
+            BinaryColor::Off,
+        )?;
         return Ok(());
     }
     pub fn display_error_message<'a>(
@@ -519,6 +535,166 @@ impl DisplayBoxed {
         style: MonoTextStyle<'a, BinaryColor>,
     ) -> anyhow::Result<()> {
         Text::new(message, Point::new(58, 100), style).draw(self)?;
+        Ok(())
+    }
+    pub fn draw_connections(&mut self, connection: ConnectionDirection) -> anyhow::Result<()> {
+        match connection {
+            ConnectionDirection::Top(arr) => {
+                // Line middle to top circle
+                Line::new(Point::new(75, 64), Point::new(75, 44))
+                    .into_styled(
+                        PrimitiveStyleBuilder::new()
+                            .stroke_color(BinaryColor::On)
+                            .stroke_width(2)
+                            .build(),
+                    )
+                    .draw(self)?;
+                match arr {
+                    true => {
+                        self.draw_arrow(ArrowDirection::Up)?;
+                    }
+                    false => (),
+                }
+            }
+            ConnectionDirection::Left(arr) => {
+                //Line middle to left circle
+                Line::new(Point::new(74, 63), Point::new(55, 63))
+                    .into_styled(
+                        PrimitiveStyleBuilder::new()
+                            .stroke_color(BinaryColor::On)
+                            .stroke_width(2)
+                            .build(),
+                    )
+                    .draw(self)?;
+                match arr {
+                    true => {
+                        self.draw_arrow(ArrowDirection::Left)?;
+                    }
+                    false => (),
+                }
+            }
+            ConnectionDirection::Right(arr) => {
+                // Line middle to right circle
+                Line::new(Point::new(74, 64), Point::new(94, 64))
+                    .into_styled(
+                        PrimitiveStyleBuilder::new()
+                            .stroke_color(BinaryColor::On)
+                            .stroke_width(2)
+                            .build(),
+                    )
+                    .draw(self)?;
+                match arr {
+                    true => {
+                        self.draw_arrow(ArrowDirection::Right)?;
+                    }
+                    false => (),
+                }
+            }
+            ConnectionDirection::Bottom(arr) => {
+                // Line middle to bottom circle
+                Line::new(Point::new(74, 64), Point::new(74, 82))
+                    .into_styled(
+                        PrimitiveStyleBuilder::new()
+                            .stroke_color(BinaryColor::On)
+                            .stroke_width(2)
+                            .build(),
+                    )
+                    .draw(self)?;
+
+                match arr {
+                    true => {
+                        self.draw_arrow(ArrowDirection::Down)?;
+                    }
+                    false => (),
+                }
+            }
+        }
+
+        Ok(())
+    }
+    fn draw_arrow(&mut self, direction: ArrowDirection) -> anyhow::Result<()> {
+        match direction {
+            ArrowDirection::Up => {
+                // Arrow up
+                Line::new(Point::new(75, 44), Point::new(82, 51))
+                    .into_styled(
+                        PrimitiveStyleBuilder::new()
+                            .stroke_width(1)
+                            .stroke_color(BinaryColor::On)
+                            .build(),
+                    )
+                    .draw(self)?;
+                Line::new(Point::new(74, 44), Point::new(67, 51))
+                    .into_styled(
+                        PrimitiveStyleBuilder::new()
+                            .stroke_width(1)
+                            .stroke_color(BinaryColor::On)
+                            .build(),
+                    )
+                    .draw(self)?;
+                // Arrow up end
+            }
+            ArrowDirection::Right => {
+                // Arrow right
+                Line::new(Point::new(94, 63), Point::new(87, 56))
+                    .into_styled(
+                        PrimitiveStyleBuilder::new()
+                            .stroke_width(1)
+                            .stroke_color(BinaryColor::On)
+                            .build(),
+                    )
+                    .draw(self)?;
+                Line::new(Point::new(94, 64), Point::new(87, 71))
+                    .into_styled(
+                        PrimitiveStyleBuilder::new()
+                            .stroke_width(1)
+                            .stroke_color(BinaryColor::On)
+                            .build(),
+                    )
+                    .draw(self)?;
+                //arrow right end
+            }
+            ArrowDirection::Down => {
+                // Arrow down
+                Line::new(Point::new(74, 82), Point::new(67, 75))
+                    .into_styled(
+                        PrimitiveStyleBuilder::new()
+                            .stroke_width(1)
+                            .stroke_color(BinaryColor::On)
+                            .build(),
+                    )
+                    .draw(self)?;
+                Line::new(Point::new(75, 82), Point::new(82, 75))
+                    .into_styled(
+                        PrimitiveStyleBuilder::new()
+                            .stroke_width(1)
+                            .stroke_color(BinaryColor::On)
+                            .build(),
+                    )
+                    .draw(self)?;
+                //arrow down end
+            }
+            ArrowDirection::Left => {
+                // Arrow left
+                Line::new(Point::new(55, 64), Point::new(62, 71))
+                    .into_styled(
+                        PrimitiveStyleBuilder::new()
+                            .stroke_width(1)
+                            .stroke_color(BinaryColor::On)
+                            .build(),
+                    )
+                    .draw(self)?;
+                Line::new(Point::new(55, 63), Point::new(62, 56))
+                    .into_styled(
+                        PrimitiveStyleBuilder::new()
+                            .stroke_width(1)
+                            .stroke_color(BinaryColor::On)
+                            .build(),
+                    )
+                    .draw(self)?;
+                //arrow left end
+            }
+        }
         Ok(())
     }
 }
