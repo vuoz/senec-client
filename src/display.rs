@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::iterator::PixelIteratorExt;
 use embedded_graphics::mono_font::MonoTextStyleBuilder;
@@ -36,11 +37,17 @@ use esp_idf_hal::spi::SpiDriver;
 use esp_idf_hal::delay;
 
 use epd_waveshare::{prelude::WaveshareDisplay, *};
+// this is for the direction power is comming from
 enum ArrowDirection {
     Left,
     Right,
     Down,
     Up,
+}
+// this is for sunset and sunrise
+enum SimpleArrowDirection {
+    Up,
+    Down,
 }
 pub enum ConnectionDirection {
     Top(bool),
@@ -181,6 +188,27 @@ static HOUSE_PATTERN: [u8; 270] = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+];
+#[rustfmt::skip]
+static CLOUD_OUTLINE: [u8; 340] = [
+
+0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
+1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,1,
+1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,
+1,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,
+1,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,
+1,0,0,0,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,1,
+1,1,1,0,1,0,0,0,0,1,1,1,1,1,1,1,0,0,0,1,
+1,0,0,0,1,0,1,1,1,1,1,1,1,1,1,0,0,0,0,1,
+1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,
+1,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+1,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,1,0,0,1,
+1,1,0,0,0,0,0,0,1,1,0,0,0,1,0,0,1,1,1,1,
+0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
 ];
 
 #[rustfmt::skip]
@@ -441,7 +469,8 @@ impl DisplayBoxed {
         )
         .draw(self)?;
         self.draw_text(style, "0.00", "-0.00", "0.00", "-0.00", "0:00PM")?;
-
+        self.draw_default_weather()?;
+        self.draw_default_total()?;
         Ok(())
     }
     pub fn draw_text<'a>(
@@ -701,6 +730,298 @@ impl DisplayBoxed {
                 //arrow left end
             }
         }
+        Ok(())
+    }
+    pub fn update_sun_data(&mut self, sunrise: &str, sunset: &str) -> anyhow::Result<()> {
+        let style = MonoTextStyleBuilder::new()
+            .font(&embedded_graphics::mono_font::ascii::FONT_6X10)
+            .text_color(BinaryColor::On)
+            .build();
+        if sunset.len() > 5 || sunrise.len() > 5 {
+            return Err(anyhow!("error input to long"));
+        }
+
+        // clears both text areas
+        self.fill_solid(
+            &Rectangle::new(Point::new(190, 3), Size::new(30, 12)),
+            BinaryColor::Off,
+        )?;
+        self.fill_solid(
+            &Rectangle::new(Point::new(260, 3), Size::new(30, 12)),
+            BinaryColor::Off,
+        )?;
+
+        Text::new(sunrise, Point::new(190, 12), style).draw(self)?;
+
+        Text::new(sunset, Point::new(260, 12), style).draw(self)?;
+        Ok(())
+    }
+
+    pub fn draw_default_weather(&mut self) -> anyhow::Result<()> {
+        // first part display on the right into 2;
+        Line::new(Point::new(149, 70), Point::new(296, 70))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_color(BinaryColor::On)
+                    .stroke_width(2)
+                    .build(),
+            )
+            .draw(self)?;
+        SUN_PATTERN
+            .iter()
+            .enumerate()
+            .map(|(idx, num)| {
+                let x = 155 + (idx % 18);
+                let y = 2 + (idx / 18);
+                let color = {
+                    if num == &0 {
+                        BinaryColor::Off
+                    } else if num == &1 {
+                        BinaryColor::On
+                    } else {
+                        BinaryColor::Off
+                    }
+                };
+                Pixel(Point::new(x as i32, y as i32), color)
+            })
+            .draw(self)?;
+
+        // arrow up
+        self.draw_arrow_simple(SimpleArrowDirection::Up, (178, 3))?;
+
+        SUN_PATTERN
+            .iter()
+            .enumerate()
+            .map(|(idx, num)| {
+                let x = 225 + (idx % 18);
+                let y = 2 + (idx / 18);
+                let color = {
+                    if num == &0 {
+                        BinaryColor::Off
+                    } else if num == &1 {
+                        BinaryColor::On
+                    } else {
+                        BinaryColor::Off
+                    }
+                };
+                Pixel(Point::new(x as i32, y as i32), color)
+            })
+            .draw(self)?;
+        // arrow down
+        self.draw_arrow_simple(SimpleArrowDirection::Down, (248, 3))?;
+        let style = MonoTextStyleBuilder::new()
+            .font(&embedded_graphics::mono_font::ascii::FONT_6X10)
+            .text_color(BinaryColor::On)
+            .build();
+
+        // sunset and sunrise values
+        Text::new("00.00", Point::new(190, 12), style).draw(self)?;
+        Text::new("00.00", Point::new(260, 12), style).draw(self)?;
+
+        // other descriptors
+        CLOUD_OUTLINE
+            .iter()
+            .enumerate()
+            .map(|(idx, num)| {
+                let x = 155 + (idx % 20);
+                let y = 22 + (idx / 20);
+                let color = {
+                    if num == &0 {
+                        BinaryColor::Off
+                    } else if num == &1 {
+                        BinaryColor::On
+                    } else {
+                        BinaryColor::Off
+                    }
+                };
+                Pixel(Point::new(x as i32, y as i32), color)
+            })
+            .draw(self)?;
+        Text::new(":", Point::new(175 + 2, 22 + 10), style).draw(self)?;
+
+        Ok(())
+    }
+    fn draw_arrow_simple(
+        &mut self,
+        direction: SimpleArrowDirection,
+        startpos: (i32, i32),
+    ) -> anyhow::Result<()> {
+        match direction {
+            SimpleArrowDirection::Up => {
+                Line::new(
+                    Point::new(startpos.0, startpos.1),
+                    Point::new(startpos.0, startpos.1 + 11),
+                )
+                .into_styled(
+                    PrimitiveStyleBuilder::new()
+                        .stroke_width(2)
+                        .stroke_color(BinaryColor::On)
+                        .build(),
+                )
+                .draw(self)?;
+                Line::new(
+                    Point::new(startpos.0, startpos.1),
+                    Point::new(startpos.0 + 6, startpos.1 + 6),
+                )
+                .into_styled(
+                    PrimitiveStyleBuilder::new()
+                        .stroke_width(2)
+                        .stroke_color(BinaryColor::On)
+                        .build(),
+                )
+                .draw(self)?;
+                Line::new(
+                    Point::new(startpos.0, startpos.1),
+                    Point::new(startpos.0 - 6, startpos.1 + 6),
+                )
+                .into_styled(
+                    PrimitiveStyleBuilder::new()
+                        .stroke_width(2)
+                        .stroke_color(BinaryColor::On)
+                        .build(),
+                )
+                .draw(self)?;
+                Pixel(Point::new(startpos.0 - 6, startpos.1 + 6), BinaryColor::Off).draw(self)?;
+            }
+            SimpleArrowDirection::Down => {
+                Line::new(
+                    Point::new(startpos.0, startpos.1),
+                    Point::new(startpos.0, startpos.1 + 11),
+                )
+                .into_styled(
+                    PrimitiveStyleBuilder::new()
+                        .stroke_width(2)
+                        .stroke_color(BinaryColor::On)
+                        .build(),
+                )
+                .draw(self)?;
+                Line::new(
+                    Point::new(startpos.0 + 1, startpos.1 + 11),
+                    Point::new(startpos.0 - 5, startpos.1 + 11 - 6),
+                )
+                .into_styled(
+                    PrimitiveStyleBuilder::new()
+                        .stroke_width(2)
+                        .stroke_color(BinaryColor::On)
+                        .build(),
+                )
+                .draw(self)?;
+                Line::new(
+                    Point::new(startpos.0 + 1, startpos.1 + 11),
+                    Point::new(startpos.0 + 7, startpos.1 + 11 - 6),
+                )
+                .into_styled(
+                    PrimitiveStyleBuilder::new()
+                        .stroke_width(2)
+                        .stroke_color(BinaryColor::On)
+                        .build(),
+                )
+                .draw(self)?;
+                Pixel(
+                    Point::new(startpos.0 + 7, startpos.1 + 11 - 6),
+                    BinaryColor::Off,
+                )
+                .draw(self)?;
+            }
+        }
+
+        Ok(())
+    }
+    pub fn draw_default_total(&mut self) -> anyhow::Result<()> {
+        let style_total = MonoTextStyleBuilder::new()
+            .font(&embedded_graphics::mono_font::ascii::FONT_9X15)
+            .text_color(BinaryColor::On)
+            .build();
+        let style = MonoTextStyleBuilder::new()
+            .font(&embedded_graphics::mono_font::ascii::FONT_6X12)
+            .text_color(BinaryColor::On)
+            .build();
+
+        // top right corner display "Total"
+        Text::new("Total", Point::new(154, 80), style_total).draw(self)?;
+        Line::new(Point::new(150, 86), Point::new(190, 86))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_width(2)
+                    .stroke_color(BinaryColor::On)
+                    .build(),
+            )
+            .draw(self)?;
+        Line::new(Point::new(190, 86), Point::new(190, 70))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_width(2)
+                    .stroke_color(BinaryColor::On)
+                    .build(),
+            )
+            .draw(self)?;
+        // end
+        //
+        SUN_PATTERN
+            .iter()
+            .enumerate()
+            .map(|(idx, num)| {
+                let x = 180 + (idx % 18);
+                let y = 90 + (idx / 18);
+                let color = {
+                    if num == &0 {
+                        BinaryColor::Off
+                    } else if num == &1 {
+                        BinaryColor::On
+                    } else {
+                        BinaryColor::Off
+                    }
+                };
+                Pixel(Point::new(x as i32, y as i32), color)
+            })
+            .draw(self)?;
+        Text::new("00.00 kW", Point::new(205, 100), style).draw(self)?;
+
+        HOUSE_PATTERN
+            .iter()
+            .enumerate()
+            .map(|(idx, num)| {
+                let x = 180 + (idx % 18);
+                let y = 110 + (idx / 18);
+                let color = {
+                    if num == &0 {
+                        BinaryColor::Off
+                    } else if num == &1 {
+                        BinaryColor::On
+                    } else {
+                        BinaryColor::Off
+                    }
+                };
+                Pixel(Point::new(x as i32, y as i32), color)
+            })
+            .draw(self)?;
+
+        Text::new("00.00 kW", Point::new(205, 120), style).draw(self)?;
+        Ok(())
+    }
+    pub fn update_total_display(
+        &mut self,
+        consumption: &str,
+        generated: &str,
+    ) -> anyhow::Result<()> {
+        if consumption.len() > 5 || generated.len() > 5 {
+            return Err(anyhow!("input to long"));
+        }
+        let style = MonoTextStyleBuilder::new()
+            .font(&embedded_graphics::mono_font::ascii::FONT_6X10)
+            .text_color(BinaryColor::On)
+            .build();
+        self.fill_solid(
+            &Rectangle::new(Point::new(205, 90), Size::new(45, 12)),
+            BinaryColor::Off,
+        )?;
+        self.fill_solid(
+            &Rectangle::new(Point::new(205, 110), Size::new(45, 12)),
+            BinaryColor::Off,
+        )?;
+
+        Text::new(generated, Point::new(205, 100), style).draw(self)?;
+        Text::new(consumption, Point::new(205, 120), style).draw(self)?;
         Ok(())
     }
 }
