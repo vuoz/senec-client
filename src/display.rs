@@ -928,11 +928,11 @@ impl DisplayBoxed {
         Ok(())
     }
     pub fn draw_default_total(&mut self) -> anyhow::Result<()> {
-        let style_total = MonoTextStyleBuilder::new()
+        let style = MonoTextStyleBuilder::new()
             .font(&embedded_graphics::mono_font::ascii::FONT_9X15)
             .text_color(BinaryColor::On)
             .build();
-        let style = MonoTextStyleBuilder::new()
+        let style_total = MonoTextStyleBuilder::new()
             .font(&embedded_graphics::mono_font::ascii::FONT_6X12)
             .text_color(BinaryColor::On)
             .build();
