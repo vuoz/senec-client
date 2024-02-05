@@ -27,6 +27,11 @@ pub struct UiDataWithWeather<'a> {
     pub gui_boosting_info: &'a str,
     pub weather: Weather<'a>,
 }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TotalData<'a> {
+    pub consumption: &'a str,
+    pub generated: &'a str,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Weather<'a> {
@@ -74,6 +79,8 @@ pub struct UiDataWithWeatherNew<'a> {
     pub gui_charging_info: &'a str,
     pub gui_boosting_info: &'a str,
     pub weather: ApiRespHourly<'a>,
+
+    pub total_data: TotalData<'a>,
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ApiRespHourly<'a> {

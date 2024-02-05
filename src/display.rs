@@ -1008,7 +1008,7 @@ impl DisplayBoxed {
             return Err(anyhow!("input to long"));
         }
         let style = MonoTextStyleBuilder::new()
-            .font(&embedded_graphics::mono_font::ascii::FONT_6X10)
+            .font(&embedded_graphics::mono_font::ascii::FONT_9X15)
             .text_color(BinaryColor::On)
             .build();
         self.fill_solid(

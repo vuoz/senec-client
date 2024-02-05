@@ -133,14 +133,22 @@ fn main() -> Result<()> {
                             if json_values.gui_bat_data_power != "0.00"
                                 && !json_values.gui_bat_data_power.starts_with("-")
                             {
-                                // to the battery since it is being charged
-                                display
-                                    .draw_connections(display::ConnectionDirection::Bottom(true))?;
+                                // to the battery since it is being discharged
+                                display.draw_connections(display::ConnectionDirection::Bottom(
+                                    false,
+                                ))?;
                             }
                             if json_values.gui_bat_data_power.starts_with("-")
                                 && json_values.gui_bat_data_power != "0.00"
                             {
-                                display.draw_connections(display::ConnectionDirection::Top(true))?
+                                display
+                                    .draw_connections(display::ConnectionDirection::Bottom(false))?
+                            } else if !json_values.gui_bat_data_power.starts_with("-")
+                                && json_values.gui_bat_data_power != "0.00"
+                            {
+                                // to the battery since it is being charged
+                                display
+                                    .draw_connections(display::ConnectionDirection::Bottom(true))?;
                             }
 
                             // power send to the grid
@@ -158,6 +166,12 @@ fn main() -> Result<()> {
                             {
                                 display
                                     .draw_connections(display::ConnectionDirection::Left(false))?;
+                            }
+                            if json_values.total_data.consumption != "" {
+                                display.update_total_display(
+                                    json_values.total_data.consumption,
+                                    json_values.total_data.generated,
+                                )?;
                             }
 
                             epd.update_new_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
