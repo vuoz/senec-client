@@ -17,7 +17,7 @@ use epd_waveshare::prelude::WaveshareDisplay;
 use epd_waveshare::prelude::*;
 use esp_idf_hal::delay;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use esp_idf_hal::peripherals::Peripherals;
 
 use crate::display::init_display;
@@ -83,6 +83,7 @@ fn main() -> Result<()> {
     // start time
     let mut curr_time = std::time::SystemTime::now();
 
+    let mut first_run = true;
     loop {
         match framer.read(&mut stream, &mut frame_buf) {
             Ok(read_res) => match read_res {
@@ -105,8 +106,8 @@ fn main() -> Result<()> {
                     }
                     log::info!("Got a message {}", t);
 
-                    match serde_json_core::from_str::<types::UiDataWithWeatherNew>(t) {
-                        Ok((json_values, _)) => {
+                    match serde_json::from_str::<types::NewUiStruct>(t) {
+                        Ok(json_values) => {
                             display.clear_text()?;
                             display.draw_text(
                                 default_text_style,
@@ -167,16 +168,36 @@ fn main() -> Result<()> {
                                 display
                                     .draw_connections(display::ConnectionDirection::Left(false))?;
                             }
-                            if json_values.total_data.consumption != "" {
+
+                            if json_values.total_data.new || first_run {
                                 display.update_total_display(
                                     json_values.total_data.consumption,
                                     json_values.total_data.generated,
                                 )?;
+                                // this only needs to be updated every hour
+                                let sunrise = json_values
+                                    .weather
+                                    .daily
+                                    .sunrise
+                                    .get(0)
+                                    .ok_or(anyhow!("error value not present"))?;
+                                let sunset = json_values
+                                    .weather
+                                    .daily
+                                    .sunset
+                                    .get(0)
+                                    .ok_or(anyhow!("error value not present"))?;
+                                display.update_sun_data(sunrise, sunset)?;
+                                first_run = false;
                             }
+
+                            println!("{}", json_values.total_data.consumption);
 
                             epd.update_new_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
                             epd.display_new_frame(&mut driver, &mut delay::Ets)?;
                             epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+
+                            println!("continued");
 
                             continue;
                         }

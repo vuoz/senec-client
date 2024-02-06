@@ -65,7 +65,7 @@ pub struct Hourly<'a> {
     pub visibility: Option<&'a str>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct UiDataWithWeatherNew<'a> {
     pub ts: &'a str,
     pub stat_state: &'a str,
@@ -82,7 +82,8 @@ pub struct UiDataWithWeatherNew<'a> {
 
     pub total_data: TotalData<'a>,
 }
-#[derive(Serialize, Deserialize, Debug, Clone)]
+// make all of these strings
+#[derive(Deserialize, Debug, Clone)]
 pub struct ApiRespHourly<'a> {
     pub latitude: Option<f64>,
     pub longitude: Option<f64>,
@@ -93,6 +94,21 @@ pub struct ApiRespHourly<'a> {
     pub elevation: Option<f64>,
     pub hourly_units: Option<HourlyUnitsForRespHourly<'a>>,
     pub hourly: Option<HourlyForRespHourly>,
+    pub daily_units: DailyUnitsHourly<'a>,
+    pub daily: DailyHourly,
+}
+#[derive(Debug, Clone, Deserialize)]
+pub struct DailyHourly {
+    pub time: Option<heapless::Vec<heapless::String<10>, 10>>,
+    pub sunset: Option<heapless::Vec<heapless::String<10>, 10>>,
+    pub sunrise: Option<heapless::Vec<heapless::String<10>, 10>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailyUnitsHourly<'a> {
+    pub time: &'a str,
+    pub sunset: &'a str,
+    pub sunrise: &'a str,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -115,4 +131,64 @@ pub struct HourlyUnitsForRespHourly<'a> {
     pub cloud_cover: Option<&'a str>,
     pub uv_index: Option<&'a str>,
     pub uv_index_clear_sky: Option<&'a str>,
+}
+
+// Example code that deserializes and serializes the model.
+// extern crate serde;
+// #[macro_use]
+// extern crate serde_derive;
+// extern crate serde_json;
+//
+// use generated_module::Welcome;
+//
+// fn main() {
+//     let json = r#"{"answer": 42}"#;
+//     let model: Welcome = serde_json::from_str(&json).unwrap();
+// }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NewUiStruct<'a> {
+    pub ts: &'a str,
+    pub stat_state: &'a str,
+    pub gui_bat_data_power: &'a str,
+    pub gui_inverter_power: &'a str,
+    pub gui_house_pow: &'a str,
+    pub gui_grid_pow: &'a str,
+    pub gui_bat_data_fuel_charge: &'a str,
+    pub gui_charging_info: &'a str,
+    pub gui_boosting_info: &'a str,
+    pub weather: WeatherNew,
+    pub total_data: TotalDataNew<'a>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TotalDataNew<'a> {
+    pub consumption: &'a str,
+    pub generated: &'a str,
+    pub new: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WeatherNew {
+    pub hourly: HourlyNew,
+    pub daily: DailyNew,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailyNew {
+    pub time: Vec<String>,
+    pub sunset: Vec<String>,
+    pub sunrise: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HourlyNew {
+    pub time: Vec<String>,
+    #[serde(rename = "temperature_2m")]
+    pub temperature_2_m: Vec<String>,
+    pub rain: Vec<String>,
+    pub showers: Vec<String>,
+    pub cloud_cover: Vec<String>,
+    pub uv_index: Vec<String>,
+    pub uv_index_clear_sky: Vec<String>,
 }
