@@ -191,13 +191,9 @@ fn main() -> Result<()> {
                                 first_run = false;
                             }
 
-                            println!("{}", json_values.total_data.consumption);
-
                             epd.update_new_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
                             epd.display_new_frame(&mut driver, &mut delay::Ets)?;
                             epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
-
-                            println!("continued");
 
                             continue;
                         }
