@@ -41,3 +41,4 @@ serde = "1.0.195"
 embedded-hal = "0.2.7"
 [build-dependencies]
 embuild = "0.31.3"
+dotenv = "0.15.0"

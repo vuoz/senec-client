@@ -24,6 +24,8 @@ use crate::display::init_display;
 use crate::wifi::connect_to_wifi;
 
 fn main() -> Result<()> {
+    let wifi_password = option_env!("WIFI_PASS").ok_or(anyhow!("wifi_pass not set"))?;
+    let wifi_ssid = option_env!("WIFI_SSID").ok_or(anyhow!("wifi_ssid not set"))?;
     esp_idf_svc::sys::link_patches();
 
     esp_idf_svc::log::EspLogger::initialize_default();
@@ -32,7 +34,7 @@ fn main() -> Result<()> {
     let peripherals = Peripherals::take()?;
 
     // connecting to wifi
-    let _wifi = connect_to_wifi(peripherals.modem)?;
+    let _wifi = connect_to_wifi(peripherals.modem, wifi_ssid, wifi_password)?;
 
     // setting up display
     let (mut display, mut epd, mut driver) = init_display(
