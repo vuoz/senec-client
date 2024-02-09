@@ -83,7 +83,7 @@ fn main() -> Result<()> {
     // start time
     let mut curr_time = std::time::SystemTime::now();
 
-    let mut first_run = true;
+    let mut flushed = true;
     loop {
         match framer.read(&mut stream, &mut frame_buf) {
             Ok(read_res) => match read_res {
@@ -94,7 +94,8 @@ fn main() -> Result<()> {
                     let time_now = std::time::SystemTime::now();
                     let since = time_now.duration_since(curr_time)?;
                     if since > Duration::from_secs(60) {
-                        display.clear(BinaryColor::Off)?;
+                        //display.clear(BinaryColor::Off)?;
+                        display.clear_buffer(Color::White);
                         display.draw_default_display(default_text_style)?;
                         epd.update_and_display_frame(
                             &mut driver,
@@ -103,6 +104,7 @@ fn main() -> Result<()> {
                         )?;
                         epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
                         curr_time = time_now;
+                        flushed = true;
                     }
                     log::info!("Got a message {}", t);
 
@@ -169,7 +171,7 @@ fn main() -> Result<()> {
                                     .draw_connections(display::ConnectionDirection::Left(false))?;
                             }
 
-                            if json_values.total_data.new || first_run {
+                            if json_values.total_data.new || flushed {
                                 display.update_total_display(
                                     json_values.total_data.consumption,
                                     json_values.total_data.generated,
@@ -188,7 +190,7 @@ fn main() -> Result<()> {
                                     .get(0)
                                     .ok_or(anyhow!("error value not present"))?;
                                 display.update_sun_data(sunrise, sunset)?;
-                                first_run = false;
+                                flushed = false;
                             }
 
                             epd.update_new_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
