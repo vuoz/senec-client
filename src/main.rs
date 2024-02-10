@@ -157,10 +157,14 @@ fn main() -> Result<()> {
                             }
 
                             // power send to the grid
-                            if json_values.gui_grid_pow.starts_with("-") {
+                            if json_values.gui_grid_pow.starts_with("-")
+                                && json_values.gui_grid_pow != "-0.00"
+                            {
                                 display
                                     .draw_connections(display::ConnectionDirection::Right(true))?;
-                            } else if !json_values.gui_grid_pow.starts_with("-") {
+                            } else if !json_values.gui_grid_pow.starts_with("-")
+                                && json_values.gui_grid_pow != "0.00"
+                            {
                                 // power taken from the grid
                                 display
                                     .draw_connections(display::ConnectionDirection::Right(false))?;
