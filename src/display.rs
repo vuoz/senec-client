@@ -351,7 +351,7 @@ impl DisplayBoxed {
             .iter()
             .enumerate()
             .map(|(idx, num)| {
-                let x = 109 + (idx % 18);
+                let x = 108 + (idx % 18);
                 let y = 43 + (idx / 18);
                 let color = {
                     if num == &0 {
