@@ -84,7 +84,12 @@ fn main() -> Result<()> {
 
         match framer.connect(&mut stream, &options) {
             Ok(_) => (),
-            Err(e) => return Err(convert_connect_error(e)),
+            Err(e) => {
+                log::info!("Error: {}", convert_connect_error(e));
+                retries += 1;
+
+                continue;
+            }
         };
 
         log::info!("Connected to websocket");
@@ -92,7 +97,7 @@ fn main() -> Result<()> {
         let mut curr_time = std::time::SystemTime::now();
 
         let mut flushed = true;
-        loop {
+        'inner: loop {
             match framer.read(&mut stream, &mut frame_buf) {
                 Ok(read_res) => match read_res {
                     ReadResult::Binary(_) => continue,
@@ -252,7 +257,7 @@ fn main() -> Result<()> {
                 },
                 Err(e) => {
                     println!("Error :{:?}", e);
-                    break;
+                    break 'inner;
                 }
             }
         }

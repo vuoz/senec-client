@@ -133,19 +133,6 @@ pub struct HourlyUnitsForRespHourly<'a> {
     pub uv_index_clear_sky: Option<&'a str>,
 }
 
-// Example code that deserializes and serializes the model.
-// extern crate serde;
-// #[macro_use]
-// extern crate serde_derive;
-// extern crate serde_json;
-//
-// use generated_module::Welcome;
-//
-// fn main() {
-//     let json = r#"{"answer": 42}"#;
-//     let model: Welcome = serde_json::from_str(&json).unwrap();
-// }
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NewUiStruct<'a> {
     pub ts: &'a str,

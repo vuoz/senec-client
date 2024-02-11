@@ -190,6 +190,43 @@ static HOUSE_PATTERN: [u8; 270] = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 ];
 #[rustfmt::skip]
+static TEMP:[u8;270]=[
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,
+0,0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0,0,
+0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,
+0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,
+0,0,0,0,0,1,0,1,1,1,1,0,1,0,0,0,0,0,
+0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,
+0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,
+];
+#[rustfmt::skip]
+static CLOUD:[u8;270]=[
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,
+0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,
+0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,
+0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+];
+#[rustfmt::skip]
 static CLOUD_OUTLINE: [u8; 340] = [
 
 0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
@@ -209,6 +246,24 @@ static CLOUD_OUTLINE: [u8; 340] = [
 1,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,1,0,0,1,
 1,1,0,0,0,0,0,0,1,1,0,0,0,1,0,0,1,1,1,1,
 0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
+];
+#[rustfmt::skip]
+static RAINDROPS:[u8;270]=[
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,
+0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,
+0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,
+0,0,0,0,0,1,0,1,1,0,1,1,0,1,0,0,0,0,
+0,0,0,0,0,1,1,0,1,1,0,1,1,0,0,0,0,0,
+0,0,0,0,0,0,1,1,0,1,1,0,1,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 ];
 
 #[rustfmt::skip]
@@ -759,6 +814,10 @@ impl DisplayBoxed {
 
     pub fn draw_default_weather(&mut self) -> anyhow::Result<()> {
         // first part display on the right into 2;
+        let style_2 = MonoTextStyleBuilder::new()
+            .font(&embedded_graphics::mono_font::ascii::FONT_5X8)
+            .text_color(BinaryColor::On)
+            .build();
         Line::new(Point::new(149, 70), Point::new(296, 70))
             .into_styled(
                 PrimitiveStyleBuilder::new()
@@ -819,12 +878,12 @@ impl DisplayBoxed {
         Text::new("00.00", Point::new(260, 12), style).draw(self)?;
 
         // other descriptors
-        CLOUD_OUTLINE
+        RAINDROPS
             .iter()
             .enumerate()
             .map(|(idx, num)| {
-                let x = 155 + (idx % 20);
-                let y = 22 + (idx / 20);
+                let x = 155 + (idx % 18);
+                let y = 15 + (idx / 18);
                 let color = {
                     if num == &0 {
                         BinaryColor::Off
@@ -837,7 +896,156 @@ impl DisplayBoxed {
                 Pixel(Point::new(x as i32, y as i32), color)
             })
             .draw(self)?;
-        Text::new(":", Point::new(175 + 2, 22 + 10), style).draw(self)?;
+        CLOUD
+            .iter()
+            .enumerate()
+            .map(|(idx, num)| {
+                let x = 155 + (idx % 18);
+                let y = 28 + (idx / 18);
+                let color = {
+                    if num == &0 {
+                        BinaryColor::Off
+                    } else if num == &1 {
+                        BinaryColor::On
+                    } else {
+                        BinaryColor::Off
+                    }
+                };
+                Pixel(Point::new(x as i32, y as i32), color)
+            })
+            .draw(self)?;
+
+        Text::new("UV", Point::new(160, 50), style).draw(self)?;
+        TEMP.iter()
+            .enumerate()
+            .map(|(idx, num)| {
+                let x = 156 + (idx % 18);
+                let y = 52 + (idx / 18);
+                let color = {
+                    if num == &0 {
+                        BinaryColor::Off
+                    } else if num == &1 {
+                        BinaryColor::On
+                    } else {
+                        BinaryColor::Off
+                    }
+                };
+                Pixel(Point::new(x as i32, y as i32), color)
+            })
+            .draw(self)?;
+
+        // row 1
+        Text::new(" 100%", Point::new(155 + 20, 50 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 20, 26 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 20, 48), style_2).draw(self)?;
+        Text::new(" 100%", Point::new(155 + 20, 15 + 10), style_2).draw(self)?;
+
+        Line::new(Point::new(203, 18), Point::new(203, 65))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_width(1)
+                    .stroke_color(BinaryColor::On)
+                    .build(),
+            )
+            .draw(self)?;
+
+        // row 2
+        Text::new(" 100%", Point::new(155 + 50, 50 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 50, 26 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 50, 48), style_2).draw(self)?;
+        Text::new(" 100%", Point::new(155 + 50, 15 + 10), style_2).draw(self)?;
+
+        Line::new(Point::new(232, 18), Point::new(232, 65))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_width(1)
+                    .stroke_color(BinaryColor::On)
+                    .build(),
+            )
+            .draw(self)?;
+
+        // row 3
+        Text::new(" 100%", Point::new(155 + 80, 50 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 80, 26 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 80, 48), style_2).draw(self)?;
+        Text::new(" 100%", Point::new(155 + 80, 15 + 10), style_2).draw(self)?;
+
+        Line::new(Point::new(261, 18), Point::new(261, 65))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_width(1)
+                    .stroke_color(BinaryColor::On)
+                    .build(),
+            )
+            .draw(self)?;
+
+        // row 4
+        Text::new(" 100%", Point::new(155 + 110, 50 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 110, 26 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 110, 48), style_2).draw(self)?;
+        Text::new(" 100%", Point::new(155 + 110, 15 + 10), style_2).draw(self)?;
+
+        Ok(())
+    }
+    fn update_weather_data(&mut self) -> anyhow::Result<()> {
+        let style_2 = MonoTextStyleBuilder::new()
+            .font(&embedded_graphics::mono_font::ascii::FONT_5X8)
+            .text_color(BinaryColor::On)
+            .build();
+        self.fill_solid(
+            &Rectangle::new(Point::new(172, 18), Size::new(130, 50)),
+            BinaryColor::On,
+        )?;
+        // row 1
+        Text::new(" 100%", Point::new(155 + 20, 50 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 20, 26 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 20, 48), style_2).draw(self)?;
+        Text::new(" 100%", Point::new(155 + 20, 15 + 10), style_2).draw(self)?;
+
+        Line::new(Point::new(203, 18), Point::new(203, 65))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_width(1)
+                    .stroke_color(BinaryColor::On)
+                    .build(),
+            )
+            .draw(self)?;
+
+        // row 2
+        Text::new(" 100%", Point::new(155 + 50, 50 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 50, 26 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 50, 48), style_2).draw(self)?;
+        Text::new(" 100%", Point::new(155 + 50, 15 + 10), style_2).draw(self)?;
+
+        Line::new(Point::new(232, 18), Point::new(232, 65))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_width(1)
+                    .stroke_color(BinaryColor::On)
+                    .build(),
+            )
+            .draw(self)?;
+
+        // row 3
+        Text::new(" 100%", Point::new(155 + 80, 50 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 80, 26 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 80, 48), style_2).draw(self)?;
+        Text::new(" 100%", Point::new(155 + 80, 15 + 10), style_2).draw(self)?;
+
+        Line::new(Point::new(261, 18), Point::new(261, 65))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_width(1)
+                    .stroke_color(BinaryColor::On)
+                    .build(),
+            )
+            .draw(self)?;
+
+        // row 4
+        Text::new(" 100%", Point::new(155 + 110, 50 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 110, 26 + 10), style_2).draw(self)?;
+        Text::new("00.00", Point::new(155 + 110, 48), style_2).draw(self)?;
+        Text::new(" 100%", Point::new(155 + 110, 15 + 10), style_2).draw(self)?;
 
         Ok(())
     }
