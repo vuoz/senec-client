@@ -218,6 +218,7 @@ fn main() -> Result<()> {
                                     display.update_sun_data(sunrise, sunset)?;
                                     flushed = false;
                                 }
+                                display.update_weather_data(json_values.weather.hourly)?;
 
                                 epd.update_new_frame(
                                     &mut driver,

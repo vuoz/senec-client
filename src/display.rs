@@ -37,6 +37,8 @@ use esp_idf_hal::spi::SpiDriver;
 use esp_idf_hal::delay;
 
 use epd_waveshare::{prelude::WaveshareDisplay, *};
+
+use crate::types::HourlyNew;
 // this is for the direction power is comming from
 enum ArrowDirection {
     Left,
@@ -223,29 +225,7 @@ static CLOUD:[u8;270]=[
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-];
-#[rustfmt::skip]
-static CLOUD_OUTLINE: [u8; 340] = [
-
-0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,1,
-1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,
-1,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,
-1,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,
-1,0,0,0,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,1,
-1,1,1,0,1,0,0,0,0,1,1,1,1,1,1,1,0,0,0,1,
-1,0,0,0,1,0,1,1,1,1,1,1,1,1,1,0,0,0,0,1,
-1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,
-1,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,
-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-1,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,1,0,0,1,
-1,1,0,0,0,0,0,0,1,1,0,0,0,1,0,0,1,1,1,1,
-0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
 ];
 #[rustfmt::skip]
 static RAINDROPS:[u8;270]=[
@@ -987,21 +967,77 @@ impl DisplayBoxed {
 
         Ok(())
     }
-    fn update_weather_data(&mut self) -> anyhow::Result<()> {
+    fn draw_row_weather_data<'a>(
+        &mut self,
+        rain: &'a str,
+        cloud: &'a str,
+        uv: &'a str,
+        temp: &'a str,
+        x_offset: i32,
+    ) -> anyhow::Result<()> {
         let style_2 = MonoTextStyleBuilder::new()
             .font(&embedded_graphics::mono_font::ascii::FONT_5X8)
             .text_color(BinaryColor::On)
             .build();
+        if rain.len() == 3 {
+            Text::new(rain, Point::new(155 + x_offset + 10, 27), style_2).draw(self)?;
+        } else if rain.len() == 4 {
+            Text::new(rain, Point::new(155 + x_offset + 5, 27), style_2).draw(self)?;
+        } else {
+            Text::new(rain, Point::new(155 + x_offset, 27), style_2).draw(self)?;
+        }
+        if cloud.len() == 3 {
+            Text::new(cloud, Point::new(155 + x_offset + 10, 38), style_2).draw(self)?;
+        } else if cloud.len() == 4 {
+            Text::new(cloud, Point::new(155 + x_offset + 5, 38), style_2).draw(self)?;
+        } else {
+            Text::new(cloud, Point::new(155 + x_offset, 38), style_2).draw(self)?;
+        }
+        if uv.len() == 3 {
+            Text::new(uv, Point::new(155 + x_offset + 10, 50), style_2).draw(self)?;
+        } else if uv.len() == 4 {
+            Text::new(uv, Point::new(155 + x_offset + 5, 50), style_2).draw(self)?;
+        } else {
+            Text::new(uv, Point::new(155 + x_offset, 50), style_2).draw(self)?;
+        }
+        if temp.len() == 3 {
+            Text::new(temp, Point::new(155 + x_offset + 10, 62), style_2).draw(self)?;
+        } else if temp.len() == 4 {
+            Text::new(temp, Point::new(155 + x_offset + 5, 62), style_2).draw(self)?;
+        } else {
+            Text::new(temp, Point::new(155 + x_offset, 62), style_2).draw(self)?;
+        }
+
+        Ok(())
+    }
+    pub fn update_weather_data(&mut self, weather_data: HourlyNew) -> anyhow::Result<()> {
+        let offsets = &[20, 50, 80, 110];
         self.fill_solid(
             &Rectangle::new(Point::new(172, 18), Size::new(130, 50)),
-            BinaryColor::On,
+            BinaryColor::Off,
         )?;
-        // row 1
-        Text::new(" 100%", Point::new(155 + 20, 50 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 20, 26 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 20, 48), style_2).draw(self)?;
-        Text::new(" 100%", Point::new(155 + 20, 15 + 10), style_2).draw(self)?;
+        for (idx, x_offset) in offsets.iter().enumerate() {
+            let rain = weather_data
+                .rain
+                .get(idx)
+                .ok_or(anyhow!("error missing data"))?;
+            let cloud = weather_data
+                .cloud_cover
+                .get(idx)
+                .ok_or(anyhow!("error missing data"))?;
+            let uv = weather_data
+                .uv_index
+                .get(idx)
+                .ok_or(anyhow!("error missing data"))?;
+            let temp = weather_data
+                .temperature_2_m
+                .get(idx)
+                .ok_or(anyhow!("error missing data"))?;
 
+            self.draw_row_weather_data(rain, cloud, uv, temp, x_offset.clone())?
+        }
+
+        // seperation lines
         Line::new(Point::new(203, 18), Point::new(203, 65))
             .into_styled(
                 PrimitiveStyleBuilder::new()
@@ -1011,12 +1047,6 @@ impl DisplayBoxed {
             )
             .draw(self)?;
 
-        // row 2
-        Text::new(" 100%", Point::new(155 + 50, 50 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 50, 26 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 50, 48), style_2).draw(self)?;
-        Text::new(" 100%", Point::new(155 + 50, 15 + 10), style_2).draw(self)?;
-
         Line::new(Point::new(232, 18), Point::new(232, 65))
             .into_styled(
                 PrimitiveStyleBuilder::new()
@@ -1025,13 +1055,6 @@ impl DisplayBoxed {
                     .build(),
             )
             .draw(self)?;
-
-        // row 3
-        Text::new(" 100%", Point::new(155 + 80, 50 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 80, 26 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 80, 48), style_2).draw(self)?;
-        Text::new(" 100%", Point::new(155 + 80, 15 + 10), style_2).draw(self)?;
-
         Line::new(Point::new(261, 18), Point::new(261, 65))
             .into_styled(
                 PrimitiveStyleBuilder::new()
@@ -1040,12 +1063,6 @@ impl DisplayBoxed {
                     .build(),
             )
             .draw(self)?;
-
-        // row 4
-        Text::new(" 100%", Point::new(155 + 110, 50 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 110, 26 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 110, 48), style_2).draw(self)?;
-        Text::new(" 100%", Point::new(155 + 110, 15 + 10), style_2).draw(self)?;
 
         Ok(())
     }
