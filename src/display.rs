@@ -793,11 +793,8 @@ impl DisplayBoxed {
     }
 
     pub fn draw_default_weather(&mut self) -> anyhow::Result<()> {
-        // first part display on the right into 2;
-        let style_2 = MonoTextStyleBuilder::new()
-            .font(&embedded_graphics::mono_font::ascii::FONT_5X8)
-            .text_color(BinaryColor::On)
-            .build();
+        // first split display on the right into 2;
+
         Line::new(Point::new(149, 70), Point::new(296, 70))
             .into_styled(
                 PrimitiveStyleBuilder::new()
@@ -913,13 +910,10 @@ impl DisplayBoxed {
                 Pixel(Point::new(x as i32, y as i32), color)
             })
             .draw(self)?;
-
-        // row 1
-        Text::new(" 100%", Point::new(155 + 20, 50 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 20, 26 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 20, 48), style_2).draw(self)?;
-        Text::new(" 100%", Point::new(155 + 20, 15 + 10), style_2).draw(self)?;
-
+        let offsets = &[20, 50, 80, 110];
+        for x_offset in offsets.iter() {
+            self.draw_row_weather_data("0.0", "100.0", "0.0", "10.0", x_offset.clone())?;
+        }
         Line::new(Point::new(203, 18), Point::new(203, 65))
             .into_styled(
                 PrimitiveStyleBuilder::new()
@@ -928,12 +922,6 @@ impl DisplayBoxed {
                     .build(),
             )
             .draw(self)?;
-
-        // row 2
-        Text::new(" 100%", Point::new(155 + 50, 50 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 50, 26 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 50, 48), style_2).draw(self)?;
-        Text::new(" 100%", Point::new(155 + 50, 15 + 10), style_2).draw(self)?;
 
         Line::new(Point::new(232, 18), Point::new(232, 65))
             .into_styled(
@@ -944,12 +932,6 @@ impl DisplayBoxed {
             )
             .draw(self)?;
 
-        // row 3
-        Text::new(" 100%", Point::new(155 + 80, 50 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 80, 26 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 80, 48), style_2).draw(self)?;
-        Text::new(" 100%", Point::new(155 + 80, 15 + 10), style_2).draw(self)?;
-
         Line::new(Point::new(261, 18), Point::new(261, 65))
             .into_styled(
                 PrimitiveStyleBuilder::new()
@@ -958,12 +940,6 @@ impl DisplayBoxed {
                     .build(),
             )
             .draw(self)?;
-
-        // row 4
-        Text::new(" 100%", Point::new(155 + 110, 50 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 110, 26 + 10), style_2).draw(self)?;
-        Text::new("00.00", Point::new(155 + 110, 48), style_2).draw(self)?;
-        Text::new(" 100%", Point::new(155 + 110, 15 + 10), style_2).draw(self)?;
 
         Ok(())
     }
