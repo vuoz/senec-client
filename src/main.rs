@@ -216,9 +216,9 @@ fn main() -> Result<()> {
                                         .get(0)
                                         .ok_or(anyhow!("error value not present"))?;
                                     display.update_sun_data(sunrise, sunset)?;
+                                    display.update_weather_data(json_values.weather.hourly)?;
                                     flushed = false;
                                 }
-                                display.update_weather_data(json_values.weather.hourly)?;
 
                                 epd.update_new_frame(
                                     &mut driver,
