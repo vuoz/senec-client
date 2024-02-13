@@ -55,17 +55,17 @@ fn main() -> Result<()> {
         .baseline(embedded_graphics::text::Baseline::Top)
         .build();
 
-    // Clear the display from any remainders
-    epd.clear_frame(&mut driver, &mut delay::Ets)?;
-    display.clear(BinaryColor::Off)?;
-
-    // draw the ui with default values
-    display.draw_default_display(default_text_style)?;
-    epd.update_and_display_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
-    epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
-
     let mut retries = 0;
     loop {
+        // Clear the display from any remainders
+        epd.clear_frame(&mut driver, &mut delay::Ets)?;
+        display.clear(BinaryColor::Off)?;
+
+        // draw the ui with default values
+        display.draw_default_display(default_text_style)?;
+        epd.update_and_display_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+        epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+
         if retries > 5 {
             break;
         }
