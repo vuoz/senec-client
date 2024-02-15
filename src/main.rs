@@ -3,8 +3,6 @@ pub mod display;
 pub mod types;
 pub mod wifi;
 
-use std::time::Duration;
-
 use client::{convert_connect_error, create_tcp_conn_and_client};
 use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::mono_font::MonoTextStyleBuilder;
@@ -16,6 +14,7 @@ use embedded_websocket::framer::{Framer, ReadResult};
 use epd_waveshare::prelude::WaveshareDisplay;
 use epd_waveshare::prelude::*;
 use esp_idf_hal::delay;
+use std::time::Duration;
 
 use anyhow::{anyhow, Result};
 use esp_idf_hal::peripherals::Peripherals;
