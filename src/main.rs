@@ -230,6 +230,10 @@ fn main() -> Result<()> {
                                     display.buffer(),
                                     &mut delay::Ets,
                                 )?;
+                                unsafe {
+                                    esp_idf_sys::esp_sleep_enable_timer_wakeup(12 * 1_000_000u64);
+                                    esp_idf_sys::esp_light_sleep_start();
+                                }
 
                                 continue;
                             }
@@ -250,6 +254,8 @@ fn main() -> Result<()> {
                                     display.buffer(),
                                     &mut delay::Ets,
                                 )?;
+                                // sleep for 12s to reduce power consumption
+
                                 continue;
                             }
                         }
