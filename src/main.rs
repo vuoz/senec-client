@@ -25,6 +25,7 @@ use crate::wifi::connect_to_wifi;
 fn main() -> Result<()> {
     let wifi_password = option_env!("WIFI_PASS").ok_or(anyhow!("wifi_pass not set"))?;
     let wifi_ssid = option_env!("WIFI_SSID").ok_or(anyhow!("wifi_ssid not set"))?;
+    let server_addr = option_env!("SERVER_ADDR").ok_or(anyhow!("server_addr not set"))?;
     esp_idf_svc::sys::link_patches();
 
     esp_idf_svc::log::EspLogger::initialize_default();
@@ -77,7 +78,7 @@ fn main() -> Result<()> {
         let mut frame_buf = [0; 1000];
 
         log::info!("Starting tcp conn");
-        let (mut stream, options, mut client) = create_tcp_conn_and_client("192.168.0.131:4000")?;
+        let (mut stream, options, mut client) = create_tcp_conn_and_client(server_addr)?;
         log::info!("tcp conn success");
         let mut framer = Framer::new(&mut read_buf, &mut read_cursor, &mut write_buf, &mut client);
 
@@ -230,10 +231,6 @@ fn main() -> Result<()> {
                                     display.buffer(),
                                     &mut delay::Ets,
                                 )?;
-                                unsafe {
-                                    esp_idf_sys::esp_sleep_enable_timer_wakeup(12 * 1_000_000u64);
-                                    esp_idf_sys::esp_light_sleep_start();
-                                }
 
                                 continue;
                             }

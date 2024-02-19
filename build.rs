@@ -16,5 +16,11 @@ fn main() {
             println!("cargo:rustc-env=WIFI_SSID={}", ssid);
         }
     }
+    match std::env::var("SERVER_ADDR") {
+        Err(_) => panic!("Error SERVER_ADDR not set! Please add SERVER_ADDR to .env"),
+        Ok(addr) => {
+            println!("cargo:rustc-env=SERVER_ADDR={}", addr);
+        }
+    }
     embuild::espidf::sysenv::output();
 }
