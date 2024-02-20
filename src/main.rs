@@ -106,7 +106,7 @@ fn main() -> Result<()> {
                     ReadResult::Text(t) => {
                         let time_now = std::time::SystemTime::now();
                         let since = time_now.duration_since(curr_time)?;
-                        if since > Duration::from_secs(60) {
+                        if since > Duration::from_secs(120) {
                             display.clear_buffer(Color::White);
                             display.draw_default_display(default_text_style)?;
                             epd.update_and_display_frame(
