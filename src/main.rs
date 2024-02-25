@@ -252,6 +252,7 @@ fn main() -> Result<()> {
                                     &mut delay::Ets,
                                 )?;
                                 // sleep for 12s to reduce power consumption
+                                // still todo
 
                                 continue;
                             }
@@ -285,7 +286,7 @@ fn main() -> Result<()> {
     )
     .draw(&mut display)?;
     Text::new(
-        "Manual restart neccessary",
+        "Manual restart necessary",
         Point::new(60, 50),
         default_text_style,
     )

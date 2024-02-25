@@ -307,6 +307,7 @@ impl DisplayBoxed {
         &mut self,
         style: MonoTextStyle<'a, BinaryColor>,
     ) -> anyhow::Result<()> {
+        self.draw_default_battery_percentage()?;
         //Circle top
         Circle::new(Point::new(55, 2), 40)
             .into_styled(
@@ -767,6 +768,64 @@ impl DisplayBoxed {
         }
         Ok(())
     }
+    pub fn update_battery_percentage(&mut self, percentage: &str) -> anyhow::Result<()> {
+        self.fill_solid(
+            &Rectangle::new(Point::new(1, 1), Size::new(28, 12)),
+            BinaryColor::Off,
+        )?;
+        if percentage.len() > 3 || percentage.len() < 1 {
+            return Err(anyhow!("errro input sequence too long"));
+        }
+        let offset = {
+            if percentage.len() == 3 {
+                0
+            } else if percentage.len() == 2 {
+                5
+            } else {
+                10
+            }
+        };
+        Text::new(
+            &format!("{percentage}%"),
+            Point::new(3 + offset, 10),
+            MonoTextStyleBuilder::new()
+                .font(&embedded_graphics::mono_font::ascii::FONT_6X10)
+                .text_color(BinaryColor::On)
+                .build(),
+        )
+        .draw(self)?;
+
+        Ok(())
+    }
+    fn draw_default_battery_percentage(&mut self) -> anyhow::Result<()> {
+        Line::new(Point::new(30, 0), Point::new(30, 15))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_color(BinaryColor::On)
+                    .stroke_width(2)
+                    .build(),
+            )
+            .draw(self)?;
+
+        Line::new(Point::new(0, 15), Point::new(30, 15))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_color(BinaryColor::On)
+                    .stroke_width(2)
+                    .build(),
+            )
+            .draw(self)?;
+        Text::new(
+            "100%",
+            Point::new(3, 10),
+            MonoTextStyleBuilder::new()
+                .font(&embedded_graphics::mono_font::ascii::FONT_6X10)
+                .text_color(BinaryColor::On)
+                .build(),
+        )
+        .draw(self)?;
+        Ok(())
+    }
     pub fn update_sun_data(&mut self, sunrise: &str, sunset: &str) -> anyhow::Result<()> {
         let style = MonoTextStyleBuilder::new()
             .font(&embedded_graphics::mono_font::ascii::FONT_6X10)
@@ -1128,7 +1187,7 @@ impl DisplayBoxed {
 
         Ok(())
     }
-    pub fn draw_default_total(&mut self) -> anyhow::Result<()> {
+    fn draw_default_total(&mut self) -> anyhow::Result<()> {
         let style = MonoTextStyleBuilder::new()
             .font(&embedded_graphics::mono_font::ascii::FONT_9X15)
             .text_color(BinaryColor::On)
