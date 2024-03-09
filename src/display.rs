@@ -683,6 +683,34 @@ impl DisplayBoxed {
 
         Ok(())
     }
+    pub fn set_connected(&mut self) -> anyhow::Result<()> {
+        Line::new(Point::new(0, 118), Point::new(40, 118))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_width(1)
+                    .stroke_color(BinaryColor::On)
+                    .build(),
+            )
+            .draw(self)?;
+        Line::new(Point::new(40, 118), Point::new(40, 128))
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_width(1)
+                    .stroke_color(BinaryColor::On)
+                    .build(),
+            )
+            .draw(self)?;
+        Text::new(
+            "Connected",
+            Point::new(2, 125),
+            MonoTextStyleBuilder::new()
+                .font(&embedded_graphics::mono_font::ascii::FONT_4X6)
+                .text_color(BinaryColor::On)
+                .build(),
+        )
+        .draw(self)?;
+        Ok(())
+    }
     fn draw_arrow(&mut self, direction: ArrowDirection) -> anyhow::Result<()> {
         match direction {
             ArrowDirection::Up => {

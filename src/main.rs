@@ -93,6 +93,11 @@ fn main() -> Result<()> {
         };
 
         log::info!("Connected to websocket");
+        display.set_connected()?;
+        epd.update_new_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+        epd.display_new_frame(&mut driver, &mut delay::Ets)?;
+        epd.update_old_frame(&mut driver, display.buffer(), &mut delay::Ets)?;
+
         // start time
         let mut curr_time = std::time::SystemTime::now();
 
@@ -109,6 +114,7 @@ fn main() -> Result<()> {
                         if since > Duration::from_secs(120) {
                             display.clear_buffer(Color::White);
                             display.draw_default_display(default_text_style)?;
+                            display.set_connected()?;
                             epd.update_and_display_frame(
                                 &mut driver,
                                 display.buffer(),
