@@ -75,9 +75,8 @@ fn main() -> Result<()> {
         let mut write_buf = [0; 500];
         let mut read_buf = [0; 500];
 
-        let mut frame_buf = [0; 1000];
-
-        log::info!("Starting tcp conn");
+        let mut frame_buf = [0; 2000];
+        log::info!("Starting tcp conn to addr: {} ", server_addr);
         let (mut stream, options, mut client) = create_tcp_conn_and_client(server_addr)?;
         log::info!("tcp conn success");
         let mut framer = Framer::new(&mut read_buf, &mut read_cursor, &mut write_buf, &mut client);
